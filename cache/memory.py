@@ -75,11 +75,6 @@ class Memory(object):
         self.disk_accesses += 1
         self.disk[index*self.block_size:(index+1)*self.block_size] = block.as_list()
 
-
-
-
-
-
 def main():
     # test that disk_acceses is tracked correctly
     mem = Memory(list(range(1,1000)))
@@ -104,26 +99,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-# class LRUcache(object):
-
-#     def __init__(self, memory_size=DEFAULT_MEM_SIZE, block_size=DEFAULT_BLOCK_SIZE):
-#         self.memory_size = memory_size
-#         self.block_size = block_size
-#         self.num_blocks = memory_size//block_size
-        
-#         # Stores pairs [block, block_index]
-#         self.memory = np.array([[-1, Block(block_size)] for i in range(self.num_blocks)])
-    
-#     def get_all_block_indices(self):
-#         return self.memory[:, 0].astype(int)
-
-#     def get_block_by_disk_index(self, index):
-#         return self.memory[np.where(self.memory == index)[0], 1]
-
-#     def add_block(self):
-#         pass
-
-#     def __str__(self):
-#         return ''.join("%s, %s\n" % (augmented_block[0], str(augmented_block[1])) for augmented_block in self.memory)
