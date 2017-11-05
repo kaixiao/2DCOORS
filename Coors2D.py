@@ -13,8 +13,6 @@ class COORS2D2Sided(object):
 	def make_node_items(points):
 		# make list of node items with y as key and x as data
 
-	def 
-
 	def construct_xarray(self):
 		# TODO: This whole thing
 		# Entire preprocessing step
@@ -22,7 +20,7 @@ class COORS2D2Sided(object):
 		# returns xarray and hashmap from point to indices i, j 
 		# 	corresponding to its set P_i and the index in the set
 
-	def connect_nodes_to_xarray(self, tmp_map):
+	def connect_nodes_to_xarray(self, point_to_index_map):
 		# iterate through yveb, uses hashmap to update self.xarray_index for each node
 
 	# Support query for not just xmax/ymax, but also xmin/ymin/etc.?
