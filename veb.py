@@ -4,9 +4,9 @@ import math
 class VEBTree(object):
 
     def __init__(self, node_items):
-        # Constructs a VEBTree object, takes in a nonempty
-        # list of NodeItems
+        # Takes in a nonempty list of NodeItems
         assert len(node_items) > 0
+
         self.root = self.make_BST(node_items)
         max_depth = int(math.log(len(node_items), 2))
         self.veb_ordered_nodes = self.make_veb_order(self.root, max_depth)
@@ -71,17 +71,46 @@ class VEBTree(object):
         return veb_order
 
     def set_veb_indices(self):
-        # iterates through veb_ordered_nodes to set indices 
-        # from node to veb ordered list
-        pass
+        # iterates through veb_ordered_nodes to set veb_index of each node
+        for i, node in enumerate(self.veb_ordered_nodes):
+            node.veb_index = i
 
     def predecessor(self, key):
-        # start from root, returns node, use get_left()/get_right()!
-        pass
+        # start search from root, returns searched node
+        # memory transfers from reading nodes are accounted for by Node class
+        candidate = None
+        current_node = self.root
+        while current_node is not None:
+            if key == current_node.key:
+                return current_node
+            elif key > current_node.key:
+                if candidate is None:
+                    candidate = current_node
+                else:
+                    if candidate.key < current_node.key:
+                        candidate = current_node
+                current_node = current_node.right
+            elif key < current_node.key:
+                current_node = current_node.left
+        return candidate
 
     def successor(self, key):
-        # same as above
-        pass
+        # similar to predecessor
+        candidate = None
+        current_node = self.root
+        while current_node is not None:
+            if key == current_node.key:
+                return current_node
+            elif key < current_node.key:
+                if candidate is None:
+                    candidate = current_node
+                else:
+                    if candidate.key > current_node.key:
+                        candidate = current_node
+                current_node = current_node.left
+            elif key > current_node.key:
+                current_node = current_node.right
+        return candidate
 
     def __str__(self):
         return str(veb_ordered_nodes)
@@ -100,8 +129,9 @@ class NodeItem(object):
 class Node(object):
     """
     Node class supports basic attributes: key, data, left child 
-    pointer, right child pointer, parent pointer, and
-    augmented with depth, veb_index, xarray_index
+    pointer, right child pointer, parent pointer
+    Augmented with: depth, veb_index, xarray_index
+    Assumes every node + all its fields take up one memory slot in our model
     """
 
     def __init__(self, node_item):
@@ -117,7 +147,7 @@ class Node(object):
 
     @property
     def left(self):
-        # To enforce access through the cache/disk model
+        # Enforces access through the cache/disk model
         # TODO: find index of left in disk, and read it
         return self._left
 
@@ -140,6 +170,12 @@ class Node(object):
     @parent.setter
     def parent(self, node):
         self._parent = node
+
+    def is_root(self):
+        return self.parent is None
+
+    def is_leaf(self):
+        return self.left is None and self.right is None
 
     def __str__(self):
         return str((self.key, self.data))
