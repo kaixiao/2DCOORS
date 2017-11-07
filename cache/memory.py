@@ -25,7 +25,8 @@ class Block(object):
         return self.data
 
     def __eq__(self, other):
-        return (self.size == other.size) and (self.data == other.data)
+        return (self.size == other.size) and \
+            (self.data == other.data)
 
     def __str__(self):
         return str(self.data)
@@ -40,7 +41,8 @@ class LRUBlock(LRUCacheItem):
         return self.item.as_list()
 
     def __eq__(self, other):
-        return (self.key == other.key) and (self.item == other.item)
+        return (self.key == other.key) and \
+            (self.item == other.item)
 
 
 
@@ -60,42 +62,48 @@ class Memory(object):
         if memory_size and block_size:
             self.set_cache(self.num_blocks)
 
-    def read_block(self, index):
-        disk_chunk = self.disk[index*self.block_size:(index+1)*self.block_size]
-
-        if index not in self.cache.hash:
+    # Read the element at the index on disk
+    def read(self, index):
+        self.update_cache(index//self.block_size)
+        return self.disk[index]
+    
+    # Figure out if block is already in LRU cache
+    # Update cache and number of disk reads
+    def update_cache(self, block_index):
+        disk_chunk = self.disk[block_index*self.block_size:
+                        (block_index+1)*self.block_size]
+        if block_index not in self.cache.hash:
             self.disk_accesses += 1        
-        block = LRUBlock(index, Block(self.block_size, disk_chunk))
+        block = LRUBlock(block_index, 
+                Block(self.block_size, disk_chunk))
         self.cache.insertItem(block)
-        
-        return disk_chunk
 
     # Takes in a Block()
+    # FOR NOW: This WILL NOT be used.
     def write_block(self, index, block):
         self.disk_accesses += 1
-        self.disk[index*self.block_size:(index+1)*self.block_size] = block.as_list()
+        self.disk[index*self.block_size:
+            (index+1)*self.block_size] = block.as_list()
 
 def main():
     # test that disk_acceses is tracked correctly
     mem = Memory(list(range(1,1000)))
-    for i in range(30):
-        mem.read_block(i)
+    for i in range(240):
+        mem.read(i)
     print(mem.disk_accesses)
     for i in range(25,30):
-        mem.read_block(i)
-    mem.read_block(5)
-    mem.read_block(6)
-    mem.read_block(7)
+        mem.read(i)
+    for i in range(5, 9):
+        mem.read(i)
     print(mem.disk_accesses)
     print(mem.cache.hash.keys())
-    for i in range(8):
-        mem.read_block(i)
-        print(mem.cache.hash.keys())
-
+    for i in range(64):
+        mem.read(i)
+        if i % 8 == 0:
+            print(mem.cache.hash.keys())
     print(mem.num_blocks)
     print(mem.disk_accesses)
 
-    pass
 
 if __name__ == "__main__":
     main()
