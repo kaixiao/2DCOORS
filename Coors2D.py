@@ -1,4 +1,4 @@
-from veb import VEBTree
+from veb import VEBTree, NodeItem
 
 xcoord = lambda x: x[0]
 ycoord = lambda x: x[1]
@@ -10,10 +10,7 @@ class COORS2D2Sided(object):
 
 		# Points are stored sorted by y coordinate
 		self.points = sorted(points, key = ycoord)
-		try:
-			self.yveb = VEBTree(self.make_node_items(points))
-		except:
-			print('veb not working yet')
+		self.yveb = VEBTree(self.make_node_items(points))
 
 		print('starting xarray construction')
 		# Also the yveb stuff needs to point to stuff in the array
@@ -23,8 +20,7 @@ class COORS2D2Sided(object):
 		self.construct_xarray()
 
 	def make_node_items(self, points):
-		# TODO: make list of node items with y as key and x as data
-		return None
+                return [NodeItem(y, x) for x, y in points]
 
 	# if the y is sparse, returns the max x for which (<=x, <=y)
 	# is sparse. Otherwise, returns None
@@ -43,7 +39,7 @@ class COORS2D2Sided(object):
 
 	# Main preprocessing step
 	# computes xarray and connect nodes to correct index in xarray
-	def construct_xarray(self):		
+	def construct_xarray(self):
 		# Sort yvals from largest to smallest
 		all_yvals = [p[1] for p in self.points]
 		all_yvals.reverse()
@@ -81,7 +77,7 @@ class COORS2D2Sided(object):
 				p_i_minus_1 = [s for s in S_i if s[0] <= x_i]
 				self.xarray = self.xarray + p_i_minus_1
 				xarr_start_i += len(p_i_minus_1)
-				
+
 				# Update S_i from S_{i-1}
 				S_i = [s for s in S_i if s[0] > x_i or s[1] <= y_i]
 
@@ -103,26 +99,26 @@ class COORS2D2Sided(object):
 				self.y_to_xarray_chunk_map[all_yvals[k]] = xarr_start_i
 			self.xarray = self.xarray + S_i
 
-	def connect_nodes_to_xarray(self, point_to_index_map):
+	# def connect_nodes_to_xarray(self, point_to_index_map):
 		# iterate through yveb, uses hashmap to update self.xarray_index for each node
-		pass
+
 
 	# Support query for not just xmax/ymax, but also xmin/ymin/etc.?
 	def query(self, x_max, y_max):
-		# TODO: read from xarray via memory model, perhaps should create array 
+		# TODO: read from xarray via memory model, perhaps should create array
 		# class specifically for accessing and writing xarray
 		# Returns list of points in the quadrant (<= xmax, <= ymax)
-		rep = yveb.successor(y_max)
-		if rep is None:
-			rep = yveb.predecessor(y_max)
+		lead = self.yveb.successor(y_max)
+		if lead is None:
+			lead = yveb.predecessor(y_max)
 
 		solutions = []
-		for i in range(rep.xarray_index, len(self.xarray)):
-			node = self.xarray[i]
-			if node.data > x_max:
+		for i in range(self.y_to_xarray_chunk_map[lead.key], len(self.xarray)):
+			point = self.xarray[i]
+			if point[0] > x_max:
 				break
-			if node.key <= y_max:
-				solutions.append((node.data, node.key))
+			if point[1] <= y_max:
+				solutions.append(point)
 
 		# hacky way to remove duplicates; not sure how it fits in memory model
 		return list(set(solutions))
@@ -131,20 +127,20 @@ class COORS2D2Sided(object):
 class COORS2D3Sided(object):
 
 	def __init__(self, points):
-		# TODO: This whole thing 
+		# TODO: This whole thing
 		pass
-	
+
 	def query(self, x_min, x_max, y_max):
-		# TODO: This whole thing 
+		# TODO: This whole thing
 		pass
 
 
 class COORS2D4Sided(object):
 
 	def __init__(self, points):
-		# TODO: This whole thing 
+		# TODO: This whole thing
 		pass
-	
+
 	def query(self, x_min, x_max, y_min, y_max):
-		# TODO: This whole thing 
+		# TODO: This whole thing
 		pass

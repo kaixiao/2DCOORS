@@ -63,7 +63,7 @@ class VEBTree(object):
                 frontier.append(node.left)
             if node.right is not None:
                 frontier.append(node.right)
-        
+
         veb_order = self.make_veb_order(start, upper_depth)
         for node in recurse_nodes:
             veb_order += self.make_veb_order(node, lower_depth)
@@ -128,7 +128,7 @@ class NodeItem(object):
 
 class Node(object):
     """
-    Node class supports basic attributes: key, data, left child 
+    Node class supports basic attributes: key, data, left child
     pointer, right child pointer, parent pointer
     Augmented with: depth, veb_index, xarray_index
     Assumes every node + all its fields take up one memory slot in our model
@@ -143,7 +143,7 @@ class Node(object):
         self._parent = None
         self.depth = None
         self.veb_index = None # index in VEB order
-        self.xarray_index = None # pointer to solution xarray
+        # self.xarray_index = None # pointer to solution xarray
 
     @property
     def left(self):
