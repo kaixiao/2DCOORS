@@ -1,5 +1,5 @@
 # import numpy as np
-from LRU import LRUCache, LRUCacheItem
+from cache.LRU import LRUCache, LRUCacheItem
 
 DEFAULT_MEM_SIZE = 128
 DEFAULT_BLOCK_SIZE = 8
@@ -61,6 +61,12 @@ class Memory(object):
 
         if memory_size and block_size:
             self.set_cache(self.num_blocks)
+
+        # Zero pad to end of memory if it doesn't align
+        if len(self.disk) % self.block_size != 0:
+            self.disk += [0] * (self.block_size - len(self.disk) % self.block_size)
+            assert(len(self.disk) % self.block_size == 0)
+            print("Zero padded end of memory")
 
     # Read the element at the index on disk
     def read(self, index):
