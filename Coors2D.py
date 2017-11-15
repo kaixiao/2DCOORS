@@ -9,16 +9,21 @@ class COORS2D2Sided(object):
 
     def __init__(self, points):
 
+        self.mem = Memory()
+
         # Points are stored sorted by y coordinate
         self.points = sorted(points, key = ycoord)
         self.yveb = VEBTree(self.make_node_items(points))
+        self.mem.add_array_to_disk(self.yveb.veb_ordered_nodes)
 
         # Construct the xarray, must pass in pre-sorted (by y) points
         self.alpha = 2
         self.xarray = XArray(self.points, self.alpha)
-        # import pdb
-        # pdb.set_trace()
-        self.xarray_mem = Memory(self.xarray.xarray)
+
+        # offset measures how far from correct
+        self.xarray_disk_offset = len(self.mem.disk)
+        print('offset is', self.xarray_disk_offset)
+        self.mem.add_array_to_disk(self.xarray.xarray)
 
     def make_node_items(self, points):
         return [NodeItem(y, x) for x, y in points]
@@ -33,6 +38,9 @@ class COORS2D2Sided(object):
         # TODO: read from xarray via memory model, perhaps should create array
         # class specifically for accessing and writing xarray
         # Returns list of points in the quadrant (<= xmax, <= ymax)
+        
+        # TODO: make yveb.successor/predecessor work with memory model
+        # Maybe: Store reference to self.mem in self.yveb?
         lead = self.yveb.successor(y_max)
         if lead is None:
             lead = yveb.predecessor(y_max)
@@ -43,7 +51,8 @@ class COORS2D2Sided(object):
         read_counter = 0
         for i in range(self.xarray.y_to_xarray_chunk_map[lead.key], len(self.xarray.xarray)):
             # This line here should incorporate the memory model
-            point = self.xarray_mem.read(i)
+            ind = self.xarray_disk_offset + i
+            point = self.mem.read(ind)
             read_counter += 1
             # point = self.xarray.xarray[i]
             if point[0] > x_max:
@@ -51,7 +60,7 @@ class COORS2D2Sided(object):
             if point[1] <= y_max:
                 solutions.append(point)
         print("Read %s" % (read_counter))
-        print("Disk accesses %s" % (self.xarray_mem.disk_accesses))
+        print("Disk accesses %s" % (self.mem.disk_accesses))
 
         # hacky way to remove duplicates; not sure how it fits in memory model
         return list(set(solutions))

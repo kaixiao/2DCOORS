@@ -51,7 +51,13 @@ class Memory(object):
     def set_cache(self, cache_size):
         self.cache = LRUCache(cache_size)
 
-    def __init__(self, array, memory_size=DEFAULT_MEM_SIZE, 
+    # Zero pad to end of memory if it doesn't align
+    def zero_pad(self):
+        self.disk += [0] * (self.block_size - len(self.disk) % self.block_size)
+        assert(len(self.disk) % self.block_size == 0)
+        print("Zero padded end of memory!")
+
+    def __init__(self, array=[], memory_size=DEFAULT_MEM_SIZE, 
                 block_size=DEFAULT_BLOCK_SIZE):
         self.disk = array
         self.memory_size = memory_size
@@ -61,12 +67,16 @@ class Memory(object):
 
         if memory_size and block_size:
             self.set_cache(self.num_blocks)
-
-        # Zero pad to end of memory if it doesn't align
+        
         if len(self.disk) % self.block_size != 0:
-            self.disk += [0] * (self.block_size - len(self.disk) % self.block_size)
-            assert(len(self.disk) % self.block_size == 0)
-            print("Zero padded end of memory")
+            self.zero_pad()
+
+
+    def add_array_to_disk(self, array):
+        self.disk += array
+        if len(self.disk) % self.block_size != 0:
+            self.zero_pad()
+
 
     # Read the element at the index on disk
     def read(self, index):
