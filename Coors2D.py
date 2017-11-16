@@ -20,7 +20,7 @@ class COORS2D2Sided(object):
 		self.construct_xarray()
 
 	def make_node_items(self, points):
-                return [NodeItem(y, x) for x, y in points]
+        return [NodeItem(y, x) for x, y in points]
 
 	# if the y is sparse, returns the max x for which (<=x, <=y)
 	# is sparse. Otherwise, returns None
