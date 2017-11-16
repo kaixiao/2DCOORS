@@ -18,14 +18,18 @@ class TestCoors2D:
         return True
 
     def test_COORS2D2Sided(self):
-        points = [(random.randint(-1000, 1000), x) for x in range(1000)]
+        points = [(random.randint(-1000, 1000), x) for x in range(1005)]
         quadrant = (random.randint(-100, 100), random.randint(-100, 100))
         obj = Coors2D.COORS2D2Sided(points)
+        # import pdb
+        # pdb.set_trace()
         solutions = obj.query(*quadrant)
         # print("Points:", points)
         # print("Quadrant:", quadrant)
         # print("Solutions:", solutions)
-        return self.verify_2sided(points, quadrant, solutions)
+        if self.verify_2sided(points, quadrant, solutions):
+            return "Test Passed!"
+        return "Test Failed."
 
 def main():
     t = TestCoors2D()
