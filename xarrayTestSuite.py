@@ -3,6 +3,7 @@ import unittest
 import xarray
 import math
 import random
+from cache.memory import Memory
 
 xcoord = lambda x: x[0]
 ycoord = lambda x: x[1]
@@ -22,14 +23,21 @@ class TestXarray(unittest.TestCase):
         # Construct xarray (this is the slowest part)
         alpha = 2
         base_case_length = 10
+        memory = Memory()
         points = sorted(points, key = ycoord)
-        xarr = xarray.XArray(points, alpha, base_case_length)
+        x_upper_bound = random.choice([True, False])
+        y_upper_bound = random.choice([True, False])
+
+
+        xarr = xarray.XArray(memory, points, alpha, base_case_length, x_upper_bound, y_upper_bound)
 
         # Make sure all the points are in the xarray
         diff = set(points)-set(xarr.xarray)
         assert(len(diff) == 0)
 
-        for k in range(1000):
+        for k in range(10000):
+            if k%1000 == 0:
+                print('checked ', k)
             rand_index = random.randint(0, len(points)-1)
             # find a legitimate y value here to start - don't do veb tree search for now.
             randy = points[rand_index][1]
@@ -39,8 +47,17 @@ class TestXarray(unittest.TestCase):
             xmax = max(points, key = xcoord)[0]
             randx = random.randint(xmin, xmax)
             
-            if printout:           
-                print ('Query: x<=%s, y<=%s' %(randx, randy))
+            if printout:       
+                if x_upper_bound:
+                    if y_upper_bound:    
+                        print ('Query: x<=%s, y<=%s' %(randx, randy))
+                    else:
+                        print ('Query: x<=%s, y>=%s' %(randx, randy))
+                else:
+                    if y_upper_bound:
+                        print ('Query: x>=%s, y<=%s' %(randx, randy))
+                    else:
+                        print ('Query: x>=%s, y>=%s' %(randx, randy))
 
             ind = xarr.y_to_xarray_chunk_map[randy]
 
@@ -49,8 +66,19 @@ class TestXarray(unittest.TestCase):
             if ind < len(xarr.xarray) - base_case_length:
                 good_points = []
                 all_points = []
-                while ind < len(xarr.xarray) and xarr.xarray[ind][0] <= randx:
-                    if xarr.xarray[ind][1] <= randy:
+                if x_upper_bound:
+                    x_condition = xarr.xarray[ind][0] <= randx
+                else:
+                    x_condition = xarr.xarray[ind][0] >= randx
+
+
+                while ind < len(xarr.xarray) and x_condition:
+                    if y_upper_bound:
+                        y_condition = xarr.xarray[ind][1] <= randy
+                    else:
+                        y_condition = xarr.xarray[ind][1] >= randy
+
+                    if y_condition:
                         good_points.append(xarr.xarray[ind])
                     all_points.append(xarr.xarray[ind])
                     try:
@@ -63,6 +91,12 @@ class TestXarray(unittest.TestCase):
                         import pdb
                         pdb.set_trace()
                     ind += 1
+                    if ind < len(xarr.xarray):
+                        if x_upper_bound:
+                            x_condition = xarr.xarray[ind][0] <= randx
+                        else:
+                            x_condition = xarr.xarray[ind][0] >= randx
+
 
             if printout:
                 print ('Query verified!')
@@ -85,7 +119,7 @@ def main():
     print('--------TEST 2--------')
     t.test_2(True)
     print('--------TEST 3--------')
-    t.test_3(True)
+    t.test_3(False)
 
 if __name__ == '__main__':
     main()

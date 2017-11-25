@@ -1,3 +1,5 @@
+from cache.memory import Memory
+
 xcoord = lambda x: x[0]
 ycoord = lambda x: x[1]
 
@@ -5,34 +7,59 @@ class XArray(object):
     """An XArray structure that fits with the memory model
         Assumes that the points passed in are PRE-SORTED by y coordinate"""
 
+    def leq(self, a, b):
+        return a <= b
 
-    # if the y is sparse, returns the max x for which (<=x, <=y)
-    # is sparse. Otherwise, returns None
-    def is_sparse_x_value(self, y, points):
+    def geq(self, a, b):
+        return a >= b
+
+    # if the y is sparse, returns the opt x for which (<=x, <=y)
+    # (or other quadrant) is sparse. Otherwise, returns None
+    def is_sparse_x_value(self, y, points, x_upper_bound=True,
+                            y_upper_bound=True):
         ps = sorted(points, key = xcoord)
-        points_below = 0
-        x_max = None
-        for i in range(len(ps)):
-            if ps[i][1] <= y:
-                points_below += 1
-            # i+1 is the total number of points examined so far
-            if i+1 > self.alpha * points_below:
-                x_max = ps[i][0]
-        return x_max
+        if not x_upper_bound:
+            ps.reverse()
 
-    def __init__(self, points, alpha=2, base_case_length=10):
+        points_good = 0
+        x_opt = None
+        if y_upper_bound:
+            comparison = self.leq
+        else:
+            comparison = self.geq
+
+        for i in range(len(ps)):
+            if comparison(ps[i][1], y):
+                points_good += 1
+            # i+1 is the total number of points examined so far
+            if i+1 > self.alpha * points_good:
+                x_opt = ps[i][0]
+
+        return x_opt
+
+    def __init__(self, memory, points, alpha=2, base_case_length=10,
+                    x_upper_bound=True, y_upper_bound=True):
 
         self.xarray=[]
         self.y_to_xarray_chunk_map=dict()
         self.alpha = alpha
+        self.memory = memory
+
+        # offset measures how far from the start of memory
+        self.memory_disk_offset = len(self.memory.disk)
+        # print('offset is', self.memory_disk_offset)
 
         # Sort yvals from largest to smallest
         all_yvals = [p[1] for p in points]
-        all_yvals.reverse()
+        if y_upper_bound:
+            all_yvals.reverse()
 
         # Intialize S_0
         i = 0
         S_i = sorted(points, key = xcoord)
+        if not x_upper_bound:
+            S_i.reverse()
+
         start_i = 0
         xarr_start_i = 0
         base_case_termination = False
@@ -41,7 +68,7 @@ class XArray(object):
             if j % 500 == 0:
                 print('preprocessed %s points' % (j))
             y = all_yvals[j]
-            x = self.is_sparse_x_value(y, S_i)
+            x = self.is_sparse_x_value(y, S_i, x_upper_bound, y_upper_bound)
 
             if x:
                 i += 1
@@ -57,12 +84,24 @@ class XArray(object):
                     start_i = j
 
                 # In next line, S_i refers to S_{i-1} because it has not been updated yet
-                p_i_minus_1 = [s for s in S_i if s[0] <= x_i]
+                if x_upper_bound:
+                    p_i_minus_1 = [s for s in S_i if s[0] <= x_i]
+                else:
+                    p_i_minus_1 = [s for s in S_i if s[0] >= x_i]
                 self.xarray = self.xarray + p_i_minus_1
                 xarr_start_i += len(p_i_minus_1)
 
                 # Update S_i from S_{i-1}
-                S_i = [s for s in S_i if s[0] > x_i or s[1] <= y_i]
+                if y_upper_bound:
+                    if x_upper_bound:
+                        S_i = [s for s in S_i if s[0] > x_i or s[1] <= y_i]
+                    else:
+                        S_i = [s for s in S_i if s[0] < x_i or s[1] <= y_i]
+                else:
+                    if x_upper_bound:
+                        S_i = [s for s in S_i if s[0] > x_i or s[1] >= y_i]
+                    else:
+                        S_i = [s for s in S_i if s[0] < x_i or s[1] >= y_i]
 
             # Base case. Map all remaining elements to the last chunk, S_i
             if len(S_i) < base_case_length:
@@ -82,3 +121,8 @@ class XArray(object):
                 self.y_to_xarray_chunk_map[all_yvals[k]] = xarr_start_i
             self.xarray = self.xarray + S_i
 
+        # Add to memory
+        self.memory.add_array_to_disk(self.xarray)
+
+    def get(self, index):
+        return self.memory.read(self.memory_disk_offset + index)
