@@ -3,31 +3,47 @@ import Coors2D
 import random
 
 class TestCoors2D:
-    points_1 = [(random.randint(-10, 10), x) for x in range(16)]
 
-    def verify_2sided(self, points, quadrant, solutions):
+    def verify_2sided(self, points, quadrant, solutions, x_upper_bound, y_upper_bound):
         sol = set(solutions)
         for x, y in points:
-            if x <= quadrant[0] and y <= quadrant[1]:
+            if x_upper_bound:
+                if y_upper_bound:
+                    good_point = (x <= quadrant[0] and y <= quadrant[1])
+                else:
+                    good_point = (x <= quadrant[0] and y >= quadrant[1])
+            else:
+                if y_upper_bound:
+                    good_point = (x >= quadrant[0] and y <= quadrant[1])
+                else:
+                    good_point = (x >= quadrant[0] and y >= quadrant[1])
+
+            if good_point:
                 if (x, y) not in sol:
-                    print(x, y)
+                    print('Correct point (%s, %s) not in solution' % (x, y))
                     return False
             else:
                 if (x, y) in sol:
+                    print('Incorrect point (%s, %s) in solution' % (x, y))
                     return False
         return True
 
     def test_COORS2D2Sided(self):
         points = [(random.randint(-1000, 1000), x) for x in range(1005)]
         quadrant = (random.randint(-100, 100), random.randint(-100, 100))
-        obj = Coors2D.COORS2D2Sided(points)
-        # import pdb
-        # pdb.set_trace()
+        x_upper_bound = random.choice([True, False])
+        y_upper_bound = random.choice([True, False])
+
+
+        obj = Coors2D.COORS2D2Sided(points, x_upper_bound, y_upper_bound)
         solutions = obj.query(*quadrant)
         # print("Points:", points)
-        # print("Quadrant:", quadrant)
-        # print("Solutions:", solutions)
-        if self.verify_2sided(points, quadrant, solutions):
+        print("Quadrant:", quadrant)
+        print("x_upper_bound: ", x_upper_bound)
+        print("y_upper_bound: ", y_upper_bound)
+        print("Len Solutions:", len(solutions))
+        
+        if self.verify_2sided(points, quadrant, solutions, x_upper_bound, y_upper_bound):
             return "Test Passed!"
         return "Test Failed."
 
