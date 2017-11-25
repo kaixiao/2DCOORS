@@ -134,5 +134,5 @@ def main():
     t.test_successor_1(True)
 
 if __name__ == '__main__':
-    main()
-    # unittest.main()
+    # main()
+    unittest.main()

@@ -143,7 +143,10 @@ class Node(object):
         self._parent = None
         self.depth = None
         self.veb_index = None # index in VEB order
+        self.mem = None # pointer to memory structure
         # self.xarray_index = None # pointer to solution xarray
+
+    
 
     @property
     def left(self):
