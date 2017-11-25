@@ -39,6 +39,8 @@ class XArray(object):
 
     def __init__(self, memory, points, alpha=2, base_case_length=10,
                     x_upper_bound=True, y_upper_bound=True):
+        print("inside: x_upper_bound: ", x_upper_bound)
+        print("inside: y_upper_bound: ", y_upper_bound)
 
         self.xarray=[]
         self.y_to_xarray_chunk_map=dict()
@@ -56,7 +58,16 @@ class XArray(object):
 
         # Intialize S_0
         i = 0
-        S_i = sorted(points, key = xcoord)
+
+        y_sorted_points = points
+
+        # reverse y coordinates - strange condition
+        # this only needs to be done for x_upper_bound = False
+        # and y_upper_bound = True
+        if not x_upper_bound and y_upper_bound:
+            y_sorted_points.reverse()
+
+        S_i = sorted(y_sorted_points, key = xcoord)
         if not x_upper_bound:
             S_i.reverse()
 

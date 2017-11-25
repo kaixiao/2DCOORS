@@ -17,8 +17,8 @@ class TestXarray(unittest.TestCase):
     #             x in range(32)]
     points_2 = [(-84, -80), (92, -75), (-56, -74), (-35, -70), (-34, -67), (11, -65), (39, -63), (-78, -61), (-75, -46), (-33, -42), (-37, -38), (-72, -11), (29, -9), (-94, -8), (22, 2), (-74, 10), (-73, 13), (-47, 17), (85, 26), (57, 32), (21, 38), (67, 38), (85, 52), (-85, 52), (-32, 59), (-91, 67), (21, 71), (19, 73), (24, 85), (58, 86), (41, 96), (43, 97)]
     points_3 = [(random.randint(-1000, 1000), random.randint(-1000, 1000)) for \
-                x in range(5000)]
-
+                x in range(1000)]
+    # points_3 = [(992, -930), (990, -489), (985, -668), (976, -81), (969, -110), (968, -245), (964, -224), (960, -87), (960, -153), (960, -990), (947, -861)]
     def verify(self, points, printout):
         # Construct xarray (this is the slowest part)
         alpha = 2
@@ -27,7 +27,10 @@ class TestXarray(unittest.TestCase):
         points = sorted(points, key = ycoord)
         x_upper_bound = random.choice([True, False])
         y_upper_bound = random.choice([True, False])
-
+        x_upper_bound = False
+        y_upper_bound = True
+        print("x_upper_bound: ", x_upper_bound)
+        print("y_upper_bound: ", y_upper_bound)
 
         xarr = xarray.XArray(memory, points, alpha, base_case_length, x_upper_bound, y_upper_bound)
 
@@ -35,7 +38,7 @@ class TestXarray(unittest.TestCase):
         diff = set(points)-set(xarr.xarray)
         assert(len(diff) == 0)
 
-        for k in range(10000):
+        for k in range(1000):
             if k%1000 == 0:
                 print('checked ', k)
             rand_index = random.randint(0, len(points)-1)
@@ -115,11 +118,11 @@ class TestXarray(unittest.TestCase):
 def main():
     t = TestXarray()
     print('--------TEST 1--------')
-    t.test_1(True)
+    t.test_1(False)
     print('--------TEST 2--------')
-    t.test_2(True)
+    t.test_2(False)
     print('--------TEST 3--------')
-    t.test_3(False)
+    t.test_3(True)
 
 if __name__ == '__main__':
     main()
