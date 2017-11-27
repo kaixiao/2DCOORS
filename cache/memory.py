@@ -55,7 +55,7 @@ class Memory(object):
     def zero_pad(self):
         self.disk += [0] * (self.block_size - len(self.disk) % self.block_size)
         assert(len(self.disk) % self.block_size == 0)
-        print("Zero padded end of memory!")
+        # print("Zero padded end of memory!")
 
     def __init__(self, array=[], memory_size=DEFAULT_MEM_SIZE, 
                 block_size=DEFAULT_BLOCK_SIZE):

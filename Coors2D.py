@@ -77,8 +77,8 @@ class COORS2D2Sided(object):
             if not self.y_upper_bound and point[1] >= y_bound:
                 solutions.append(point)
 
-        print("Read %s" % (read_counter))
-        print("Disk accesses %s" % (self.memory.disk_accesses))
+        # print("Read %s" % (read_counter))
+        # print("Disk accesses %s" % (self.memory.disk_accesses))
 
         # hacky way to remove duplicates; not sure how it fits in memory model
         return list(set(solutions))

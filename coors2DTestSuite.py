@@ -28,11 +28,12 @@ class TestCoors2D:
                     return False
         return True
 
-    def test_COORS2D2Sided(self):
+    def test_COORS2D2Sided(self, dir):
         points = [(random.randint(-1000, 1000), x) for x in range(1005)]
         quadrant = (random.randint(-100, 100), random.randint(-100, 100))
-        x_upper_bound = random.choice([True, False])
-        y_upper_bound = random.choice([True, False])
+
+        x_upper_bound = bool(dir//2)
+        y_upper_bound = bool(dir%2)
 
 
         obj = Coors2D.COORS2D2Sided(points, x_upper_bound, y_upper_bound)
@@ -41,7 +42,7 @@ class TestCoors2D:
         print("Quadrant:", quadrant)
         print("x_upper_bound: ", x_upper_bound)
         print("y_upper_bound: ", y_upper_bound)
-        print("Len Solutions:", len(solutions))
+        # print("Len Solutions:", len(solutions))
         
         if self.verify_2sided(points, quadrant, solutions, x_upper_bound, y_upper_bound):
             return "Test Passed!"
@@ -49,7 +50,10 @@ class TestCoors2D:
 
 def main():
     t = TestCoors2D()
-    print(t.test_COORS2D2Sided())
+    print(t.test_COORS2D2Sided(0))
+    print(t.test_COORS2D2Sided(1))
+    print(t.test_COORS2D2Sided(2))
+    print(t.test_COORS2D2Sided(3))
 
 if __name__ == '__main__':
     main()

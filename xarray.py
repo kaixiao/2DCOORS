@@ -39,8 +39,8 @@ class XArray(object):
 
     def __init__(self, memory, points, alpha=2, base_case_length=10,
                     x_upper_bound=True, y_upper_bound=True):
-        print("inside: x_upper_bound: ", x_upper_bound)
-        print("inside: y_upper_bound: ", y_upper_bound)
+        # print("inside: x_upper_bound: ", x_upper_bound)
+        # print("inside: y_upper_bound: ", y_upper_bound)
 
         self.xarray=[]
         self.y_to_xarray_chunk_map=dict()
@@ -77,7 +77,8 @@ class XArray(object):
 
         for j in range(len(all_yvals)):
             if j % 500 == 0:
-                print('preprocessed %s points' % (j))
+                pass
+                # print('preprocessed %s points' % (j))
             y = all_yvals[j]
             x = self.is_sparse_x_value(y, S_i, x_upper_bound, y_upper_bound)
 
