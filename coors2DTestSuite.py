@@ -59,7 +59,7 @@ def main():
             res = t.test_COORS2D2Sided(j)
             if res:
                 passed += 1
-    print('Passed {} / {} Randomized Tests.'.format(passed, total))
+    print('Passed {} / {} Randomized Tests.'.format(passed, total * 4))
 
 if __name__ == '__main__':
     main()
