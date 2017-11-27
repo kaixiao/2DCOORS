@@ -1,16 +1,18 @@
-# Assumes each node + all its fields are stored in one memory slot
+# Assumes each node + all its fields are stored in one memory cell
 import math
 
 class VEBTree(object):
 
-    def __init__(self, node_items):
+    def __init__(self, memory, node_items):
         # Takes in a nonempty list of NodeItems
         assert len(node_items) > 0
 
-        self.root = self.make_BST(node_items)
+        self._root = self.make_BST(node_items)
         max_depth = int(math.log(len(node_items), 2))
-        self.veb_ordered_nodes = self.make_veb_order(self.root, max_depth)
-        self.set_veb_indices()
+        self.veb_ordered_nodes = self.make_veb_order(self._root, max_depth)
+        self.memory = memory
+        self.offset = memory.add_array_to_disk(self.veb_ordered_nodes)
+        self.initialize_nodes()
 
     def make_BST(self, node_items, parent=None, unsorted=True):
         # make a perfect BST from a list of NodeItems
@@ -30,12 +32,14 @@ class VEBTree(object):
             root.depth = parent.depth + 1
 
         if len(left_items):
-            root.left = self.make_BST(left_items, root, False)
+            root._left = self.make_BST(left_items, root, False)
+            root._left.parent = root
+            root._left.depth = root.depth + 1
 
         if len(right_items):
-            root.right = self.make_BST(right_items, root, False)
-            root.right.parent = root
-            root.right.depth = root.depth + 1
+            root._right = self.make_BST(right_items, root, False)
+            root._right.parent = root
+            root._right.depth = root.depth + 1
 
         return root
 
@@ -59,10 +63,10 @@ class VEBTree(object):
                 recurse_nodes.append(node)
             if node.depth > depth_cutoff + 1:
                 break
-            if node.left is not None:
-                frontier.append(node.left)
-            if node.right is not None:
-                frontier.append(node.right)
+            if node._left is not None:
+                frontier.append(node._left)
+            if node._right is not None:
+                frontier.append(node._right)
 
         veb_order = self.make_veb_order(start, upper_depth)
         for node in recurse_nodes:
@@ -70,10 +74,12 @@ class VEBTree(object):
 
         return veb_order
 
-    def set_veb_indices(self):
+    def initialize_nodes(self):
         # iterates through veb_ordered_nodes to set veb_index of each node
         for i, node in enumerate(self.veb_ordered_nodes):
             node.veb_index = i
+            node.veb = self
+            node.memory = self.memory
 
     def predecessor(self, key):
         # start search from root, returns searched node
@@ -112,6 +118,12 @@ class VEBTree(object):
                 current_node = current_node.right
         return candidate
 
+    @property
+    def root(self):
+        r = self.memory.read(self.offset)
+        assert self._root == r
+        return r
+
     def __str__(self):
         return str(veb_ordered_nodes)
 
@@ -143,24 +155,31 @@ class Node(object):
         self._parent = None
         self.depth = None
         self.veb_index = None # index in VEB order
-        self.mem = None # pointer to memory structure
+        self.veb = None
+        self.memory = None # pointer to memory structure
         # self.xarray_index = None # pointer to solution xarray
 
-    
+    def get(self):
+        return self.memory.read(self.veb.offset + self.veb_index)
 
     @property
     def left(self):
         # Enforces access through the cache/disk model
         # TODO: find index of left in disk, and read it
-        return self._left
+        if self._left is None:
+            return None
+        return self._left.get()
 
     @left.setter
     def left(self, node):
+        # dynamic updates not supported yet
         self._left = node
 
     @property
     def right(self):
-        return self._right
+        if self._right is None:
+            return None
+        return self._right.get()
 
     @right.setter
     def right(self, node):
@@ -168,7 +187,9 @@ class Node(object):
 
     @property
     def parent(self):
-        return self._parent
+        if self._parent is None:
+            return None
+        return self._parent.get()
 
     @parent.setter
     def parent(self, node):
