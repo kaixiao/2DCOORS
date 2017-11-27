@@ -16,10 +16,8 @@ class COORS2D2Sided(object):
         # Points are stored sorted by y coordinate
         self.points = sorted(points, key = ycoord)
 
-        self.yveb = VEBTree(self.make_node_items(points))
+        self.yveb = VEBTree(self.memory, self.make_node_items(points))
 
-        # TODO: Fix how memory works with yveb
-        self.memory.add_array_to_disk(self.yveb.veb_ordered_nodes)
         # self.xarray_disk_offset = len(self.memory.disk)
 
         # Construct the xarray, must pass in pre-sorted (by y) points
@@ -42,8 +40,6 @@ class COORS2D2Sided(object):
         # Returns list of points in the quadrant (<= xmax, <= ymax)
         # Variables are improperly named but should work for other
         # types of queries (e.g. >= xmin, >= ymin)
-        # TODO: make yveb.successor/predecessor work with memory model
-        # Maybe: Store reference to self.memory in self.yveb?
         if self.y_upper_bound:
             rep_node = self.yveb.successor(y_bound)
             if rep_node is None:
@@ -81,6 +77,7 @@ class COORS2D2Sided(object):
         print("Disk accesses %s" % (self.memory.disk_accesses))
 
         # hacky way to remove duplicates; not sure how it fits in memory model
+        # TODO: figure out how to remove duplicates in memory model
         return list(set(solutions))
 
 
