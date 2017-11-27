@@ -16,10 +16,8 @@ class COORS2D2Sided(object):
         # Points are stored sorted by y coordinate
         self.points = sorted(points, key = ycoord)
 
-        self.yveb = VEBTree(self.make_node_items(points))
+        self.yveb = VEBTree(self.memory, self.make_node_items(points))
 
-        # TODO: Fix how memory works with yveb
-        self.memory.add_array_to_disk(self.yveb.veb_ordered_nodes)
         # self.xarray_disk_offset = len(self.memory.disk)
 
         # Construct the xarray, must pass in pre-sorted (by y) points
@@ -42,22 +40,20 @@ class COORS2D2Sided(object):
         # Returns list of points in the quadrant (<= xmax, <= ymax)
         # Variables are improperly named but should work for other
         # types of queries (e.g. >= xmin, >= ymin)
-        # TODO: make yveb.successor/predecessor work with memory model
-        # Maybe: Store reference to self.memory in self.yveb?
         if self.y_upper_bound:
-            lead = self.yveb.successor(y_bound)
-            if lead is None:
-                lead = self.yveb.predecessor(y_bound)
+            rep_node = self.yveb.successor(y_bound)
+            if rep_node is None:
+                rep_node = self.yveb.predecessor(y_bound)
         else:
-            lead = self.yveb.predecessor(y_bound)
-            if lead is None:
-                lead = self.yveb.successor(y_bound)
+            rep_node = self.yveb.predecessor(y_bound)
+            if rep_node is None:
+                rep_node = self.yveb.successor(y_bound)
 
         solutions = []
         # I guess we can pretend we have the hashmap stored at the leaf nodes in the yveb
         # even though that's not how it's implemented here
         read_counter = 0
-        for i in range(self.xarray.y_to_xarray_chunk_map[lead.key], len(self.xarray.xarray)):
+        for i in range(self.xarray.y_to_xarray_chunk_map[rep_node.key], len(self.xarray.xarray)):
             # This line here should incorporate the memory model
             point = self.xarray.get(i)
             # The next few lines can be deleted once we're sure this works
@@ -81,6 +77,7 @@ class COORS2D2Sided(object):
         # print("Disk accesses %s" % (self.memory.disk_accesses))
 
         # hacky way to remove duplicates; not sure how it fits in memory model
+        # TODO: figure out how to remove duplicates in memory model
         return list(set(solutions))
 
 

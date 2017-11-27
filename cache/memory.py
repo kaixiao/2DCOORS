@@ -14,13 +14,13 @@ class Block(object):
         if data:
             self.data = data
         else:
-            self.data = [None] * size
+            self.data = [None] * self.size
 
     def __init__(self, size=DEFAULT_BLOCK_SIZE, data=None):
         self.size = size
         self.set_from_list(data)
 
-        
+
     def as_list(self):
         return self.data
 
@@ -57,9 +57,12 @@ class Memory(object):
         assert(len(self.disk) % self.block_size == 0)
         # print("Zero padded end of memory!")
 
-    def __init__(self, array=[], memory_size=DEFAULT_MEM_SIZE, 
+    def __init__(self, array=None, memory_size=DEFAULT_MEM_SIZE,
                 block_size=DEFAULT_BLOCK_SIZE):
-        self.disk = array
+        if array is None:
+            self.disk = []
+        else:
+            self.disk = array
         self.memory_size = memory_size
         self.block_size = block_size
         self.num_blocks = memory_size//block_size
@@ -67,30 +70,33 @@ class Memory(object):
 
         if memory_size and block_size:
             self.set_cache(self.num_blocks)
-        
+
         if len(self.disk) % self.block_size != 0:
             self.zero_pad()
 
 
     def add_array_to_disk(self, array):
+        # returns array offset in disk
+        offset = len(self.disk)
         self.disk += array
         if len(self.disk) % self.block_size != 0:
             self.zero_pad()
+        return offset
 
 
     # Read the element at the index on disk
     def read(self, index):
         self.update_cache(index//self.block_size)
         return self.disk[index]
-    
+
     # Figure out if block is already in LRU cache
     # Update cache and number of disk reads
     def update_cache(self, block_index):
         disk_chunk = self.disk[block_index*self.block_size:
                         (block_index+1)*self.block_size]
         if block_index not in self.cache.hash:
-            self.disk_accesses += 1        
-        block = LRUBlock(block_index, 
+            self.disk_accesses += 1
+        block = LRUBlock(block_index,
                 Block(self.block_size, disk_chunk))
         self.cache.insertItem(block)
 
