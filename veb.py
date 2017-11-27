@@ -160,12 +160,12 @@ class Node(object):
         # self.xarray_index = None # pointer to solution xarray
 
     def get(self):
+        # accesses self through memory model
         return self.memory.read(self.veb.offset + self.veb_index)
 
     @property
     def left(self):
         # Enforces access through the cache/disk model
-        # TODO: find index of left in disk, and read it
         if self._left is None:
             return None
         return self._left.get()

@@ -53,20 +53,22 @@ class COORS2D2Sided(object):
         # I guess we can pretend we have the hashmap stored at the leaf nodes in the yveb
         # even though that's not how it's implemented here
         read_counter = 0
-        for i in range(self.xarray.y_to_xarray_chunk_map[rep_node.key], len(self.xarray.xarray)):
-            # This line here should incorporate the memory model
+        if self.x_upper_bound:
+            prev_x = -float('inf')
+        else:
+            prev_x = float('inf')
+
+        for i in range(self.xarray.y_to_xarray_chunk_map[rep_node.key], \
+                       len(self.xarray.xarray)):
             point = self.xarray.get(i)
-            # The next few lines can be deleted once we're sure this works
-            # ind = self.xarray_disk_offset + i
-            # point2 = self.memory.read(ind)
-            # print('hey whatsup')
-            # assert(point == point2)
             read_counter += 1
             # point = self.xarray.xarray[i]
-            if self.x_upper_bound and point[0] > x_bound:
+
+            if self.x_upper_bound and (point[0] > x_bound or point[0] < prev_x):
                 break
-            if not self.x_upper_bound and point[0] < x_bound:
+            if not self.x_upper_bound and (point[0] < x_bound or point[0] > prev_x):
                 break
+            prev_x = point[0]
 
             if self.y_upper_bound and point[1] <= y_bound:
                 solutions.append(point)
