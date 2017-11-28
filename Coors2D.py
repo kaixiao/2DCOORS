@@ -26,20 +26,23 @@ class COORS2D2Sided(object):
         self.xarray = XArray(self.memory, self.points,
                         self.alpha, self.base_case_length,
                         self.x_upper_bound, self.y_upper_bound)
+        # initialize xarray_index field in each node
+        self.connect_nodes_to_xarray()
 
     def make_node_items(self, points):
         return [NodeItem(y, x) for x, y in points]
 
-
-    # def connect_nodes_to_xarray(self, point_to_index_map):
+    def connect_nodes_to_xarray(self):
         # iterate through yveb, uses hashmap to update self.xarray_index for each node
+        for node in self.yveb.veb_ordered_nodes:
+            node.xarray_index = self.xarray.y_to_xarray_chunk_map[node.key]
 
 
-    # Support query for not just xmax/ymax, but also xmin/ymin/etc.?
     def query(self, x_bound, y_bound):
-        # Returns list of points in the quadrant (<= xmax, <= ymax)
-        # Variables are improperly named but should work for other
-        # types of queries (e.g. >= xmin, >= ymin)
+        """
+        Returns list of points in closed quadrant
+        Only supports points with distinct x values
+        """
         if self.y_upper_bound:
             rep_node = self.yveb.successor(y_bound)
             if rep_node is None:
@@ -50,24 +53,25 @@ class COORS2D2Sided(object):
                 rep_node = self.yveb.successor(y_bound)
 
         solutions = []
-        # I guess we can pretend we have the hashmap stored at the leaf nodes in the yveb
-        # even though that's not how it's implemented here
-        read_counter = 0
+        # read_counter = 0
         if self.x_upper_bound:
             prev_x = -float('inf')
         else:
             prev_x = float('inf')
 
-        for i in range(self.xarray.y_to_xarray_chunk_map[rep_node.key], \
-                       len(self.xarray.xarray)):
+        for i in range(rep_node.xarray_index, len(self.xarray.xarray)):
             point = self.xarray.get(i)
-            read_counter += 1
+            # read_counter += 1
             # point = self.xarray.xarray[i]
 
-            if self.x_upper_bound and (point[0] > x_bound or point[0] < prev_x):
+            if self.x_upper_bound and point[0] > x_bound:
                 break
-            if not self.x_upper_bound and (point[0] < x_bound or point[0] > prev_x):
+            if not self.x_upper_bound and point[0] < x_bound:
                 break
+            if self.x_upper_bound and point[0] <= prev_x:
+                continue
+            if not self.x_upper_bound and point[0] >= prev_x:
+                continue
             prev_x = point[0]
 
             if self.y_upper_bound and point[1] <= y_bound:
@@ -75,12 +79,11 @@ class COORS2D2Sided(object):
             if not self.y_upper_bound and point[1] >= y_bound:
                 solutions.append(point)
 
-        print("Read %s" % (read_counter))
-        print("Disk accesses %s" % (self.memory.disk_accesses))
+        # print("Read %s" % (read_counter))
+        # print("Disk accesses %s" % (self.memory.disk_accesses))
 
-        # hacky way to remove duplicates; not sure how it fits in memory model
-        # TODO: figure out how to remove duplicates in memory model
-        return list(set(solutions))
+        assert len(solutions) == len(list(set(solutions)))
+        return solutions
 
 
 class COORS2D3Sided(object):

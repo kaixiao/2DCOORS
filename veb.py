@@ -154,8 +154,9 @@ class Node(object):
         self._right = None
         self._parent = None
         self.depth = None
+        self.xarray_index = None
         self.veb_index = None # index in VEB order
-        self.veb = None
+        self.veb = None # pointer to veb object it belongs to
         self.memory = None # pointer to memory structure
         # self.xarray_index = None # pointer to solution xarray
 
