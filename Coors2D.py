@@ -1,4 +1,4 @@
-from veb import VEBTree, NodeItem
+from veb import *
 from xarray import XArray
 from cache.memory import Memory
 
@@ -7,18 +7,16 @@ ycoord = lambda x: x[1]
 
 class COORS2D2Sided(object):
 
-    def __init__(self, points, x_upper_bound=True, y_upper_bound=True):
+    def __init__(self, memory, points, x_upper_bound=True, y_upper_bound=True):
 
-        self.memory = Memory()
+        self.memory = memory
         self.x_upper_bound = x_upper_bound
         self.y_upper_bound = y_upper_bound
 
         # Points are stored sorted by y coordinate
-        self.points = sorted(points, key = ycoord)
-
-        self.yveb = VEBTree(self.memory, self.make_node_items(points))
-
-        # self.xarray_disk_offset = len(self.memory.disk)
+        self.points = sorted(points, key=ycoord)
+        node_items = [NodeItem(y, x) for x, y in points]
+        self.yveb = VEB2Sided(self.memory, node_items)
 
         # Construct the xarray, must pass in pre-sorted (by y) points
         self.alpha = 2
@@ -27,12 +25,9 @@ class COORS2D2Sided(object):
                         self.alpha, self.base_case_length,
                         self.x_upper_bound, self.y_upper_bound)
         # initialize xarray_index field in each node
-        self.connect_nodes_to_xarray()
+        self.link_nodes_to_xarray()
 
-    def make_node_items(self, points):
-        return [NodeItem(y, x) for x, y in points]
-
-    def connect_nodes_to_xarray(self):
+    def link_nodes_to_xarray(self):
         # iterate through yveb, uses hashmap to update self.xarray_index for each node
         for node in self.yveb.veb_ordered_nodes:
             node.xarray_index = self.xarray.y_to_xarray_chunk_map[node.key]
@@ -81,21 +76,44 @@ class COORS2D2Sided(object):
         # print("Read %s" % (read_counter))
         # print("Disk accesses %s" % (self.memory.disk_accesses))
 
-        # just making sure there are no duplicates so logic is correct
-        assert len(solutions) == len(list(set(solutions)))
+        # making sure there are no duplicates so logic is correct
+        assert len(solutions) == len(set(solutions))
         return solutions
 
 
 class COORS2D3Sided(object):
 
-    def __init__(self, points):
-        # TODO: This whole thing
+    def __init__(self, memory, points, y_upper_bound=True):
+        self.memory = memory
+        self.y_upper_bound = y_upper_bound
+
+        self.points = sorted(points, key=xcoord)
+        node_items = [NodeItem(x, y) for x, y in points]
+        self.xveb = VEB3Sided(memory, node_items)
+
+        self.link_nodes_to_2Sided()
+
+    def link_nodes_to_2Sided(self):
+        # store 2Sided structs on points in subtrees for every node in xveb
         pass
 
-    def query(self, x_min, x_max, y_max):
-        # TODO: This whole thing
-        pass
+    def query(self, x_min, x_max, y_bound):
+        left = self.xveb.predecessor(x_min)
+        if left is None:
+            left = self.xveb.successor(x_min)
+        right = self.xveb.successor(x_max)
+        if right is None:
+            right = self.xveb.predecessor(x_max)
 
+        lca = self.xveb.LCA(left, right)
+        solutions = []
+        if lca.left is not None:
+            solutions.extend(lca.left.x_upper_struct.query(x_max, y_bound))
+        if lca.right is not None:
+            solutions.extend(lca.right.x_lower_struct.query(x_min, y_bound))
+
+        assert len(solutions) == len(set(solutions))
+        return solutions
 
 class COORS2D4Sided(object):
 

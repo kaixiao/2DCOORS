@@ -100,6 +100,12 @@ class Memory(object):
                 Block(self.block_size, disk_chunk))
         self.cache.insertItem(block)
 
+    def reset_disk_accesses(self):
+        self.disk_accesses = 0
+
+    def get_disk_accesses(self):
+        return self.disk_accesses
+
     # Takes in a Block()
     # FOR NOW: This WILL NOT be used.
     def write_block(self, index, block):
@@ -108,7 +114,7 @@ class Memory(object):
             (index+1)*self.block_size] = block.as_list()
 
 def main():
-    # test that disk_acceses is tracked correctly
+    # test that disk_accesses is tracked correctly
     mem = Memory(list(range(1,1000)))
     for i in range(240):
         mem.read(i)

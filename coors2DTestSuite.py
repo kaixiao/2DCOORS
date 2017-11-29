@@ -1,11 +1,13 @@
 import unittest
 import Coors2D
 import random
-
+from cache.memory import Memory
 
 class TestCoors2D(unittest.TestCase):
-    
-    points_1 = [(random.uniform(-1000, 1000), y) for y in range(1005)]
+
+    memory = Memory()
+    points_1 = [(random.uniform(-1000, 1000), random.uniform(-1000, 1000)) \
+                for _ in range(1024)]
     
     def verify_2Sided_solutions(self, points, quadrant, solutions, \
                                x_upper_bound, y_upper_bound):
@@ -36,7 +38,8 @@ class TestCoors2D(unittest.TestCase):
         x_upper_bound = bool(dirc//2)
         y_upper_bound = bool(dirc%2)
 
-        obj = Coors2D.COORS2D2Sided(self.points_1, x_upper_bound, y_upper_bound)
+        obj = Coors2D.COORS2D2Sided(self.memory, self.points_1, \
+                                    x_upper_bound, y_upper_bound)
         
         if not suppressed:
             print("x_upper_bound: ", x_upper_bound)

@@ -16,12 +16,11 @@ class TestVEB(unittest.TestCase):
                 (67, 38), (85, 52), (-85, 52), (-32, 59), (-91, 67), (21, 71), \
                 (19, 73), (24, 85), (58, 86), (41, 96), (43, 97)]
 
-    points_3 = [(random.randint(-1000, 1000), random.randint(-1000, 1000)) for \
-                x in range(5000)]
+    points_3 = [(random.uniform(-1000, 1000), random.uniform(-1000, 1000)) for \
+                _ in range(1024)]
 
     # verifies BST invariant at every node
     # checks if depths are correctly assigned
-    # checks if tree depth is perfect BST depth
     def verify_BST(self, points, printout):
         node_items = [veb.NodeItem(key=y, data=x) for x, y in points]
         memory = Memory()
@@ -42,7 +41,8 @@ class TestVEB(unittest.TestCase):
                 self.assertTrue(node.right.key >= node.key)
                 self.assertEqual(node.right._depth, node._depth + 1)
             max_depth = max(max_depth, node._depth)
-        self.assertEqual(max_depth, int(math.log(len(points), 2)))
+        if printout:
+            print("Test Passed!")
 
     def test_make_BST_1(self, printout=False):
         self.verify_BST(self.points_1, printout)
@@ -68,6 +68,8 @@ class TestVEB(unittest.TestCase):
                 self.assertTrue(nodes[i-1] is nodes[i].parent
                     or nodes[i-2] is nodes[i].parent
                     or nodes[i+1] is nodes[i].left)
+        if printout:
+            print("Test Passed!")
 
     def test_make_veb_order_1(self, printout=False):
         self.verify_veb_order(self.points_1, printout)
@@ -99,6 +101,8 @@ class TestVEB(unittest.TestCase):
             self.assertEqual(nodes[i].key, curr_node.key)
             
         self.assertEqual(tree.predecessor(nodes[-1].key - epsilon), None)
+        if printout:
+            print("Test Passed!")
 
     # verifier symmetric to predecessor
     def verify_successor(self, points, printout):
@@ -119,6 +123,8 @@ class TestVEB(unittest.TestCase):
             self.assertEqual(nodes[i].key, curr_node.key)
             
         self.assertEqual(tree.successor(nodes[-1].key + epsilon), None)
+        if printout:
+            print("Test Passed!")
 
     def test_predecessor_1(self, printout=False):
         self.verify_predecessor(self.points_1, printout)
