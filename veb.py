@@ -107,6 +107,18 @@ class Node3Sided(Node):
         self.x_upper_struct = None
         self.x_lower_struct = None
 
+
+class Node4Sided(Node):
+    """
+    Similar to Node3Sided class
+    """
+
+    def __init__(self, node_item):
+        Node.__init__(self, node_item)
+        self.y_upper_struct = None
+        self.y_lower_struct = None
+
+
 class VEBTree(object):
 
     def __init__(self, memory, node_items, node_builder=None, data_at_leaves=False):
@@ -126,8 +138,7 @@ class VEBTree(object):
         self.nodes = [node_builder(x) for x in node_items]
         self._root = self.make_BST(self.nodes)
 
-        max_depth = int(math.log(len(node_items) - data_at_leaves, 2) + \
-                        data_at_leaves)
+        max_depth = int(math.log(len(node_items), 2) + data_at_leaves)
         self.veb_ordered_nodes = self.make_veb_order(self._root, max_depth)
         self.initialize_node_back_pointers(self.veb_ordered_nodes)
 
@@ -139,14 +150,15 @@ class VEBTree(object):
         # make a perfect BST from a list of NodeItems
         # initializes depth of each node
         # returns root node of BST
-        if len(nodes) == 1:
-            return nodes[0]
-
         if not srted:
             nodes.sort(key=lambda x: x.key)
 
         mid = len(nodes) // 2
-        if self.data_at_leaves:
+        if len(nodes) == 1:
+            left_nodes = []
+            right_nodes = []
+            root = nodes[0]
+        elif self.data_at_leaves:
             left_nodes = nodes[:mid]
             right_nodes = nodes[mid:]
             root = nodes[mid].copy()
@@ -156,6 +168,7 @@ class VEBTree(object):
             right_nodes = nodes[mid+1:]
             root = nodes[mid]
 
+        root._parent = parent
         if parent is None:
             root._depth = 0
         else:
@@ -163,13 +176,9 @@ class VEBTree(object):
 
         if len(left_nodes):
             root._left = self.make_BST(left_nodes, root, True)
-            root._left._parent = root
-            root._left._depth = root._depth + 1
 
         if len(right_nodes):
             root._right = self.make_BST(right_nodes, root, True)
-            root._right._parent = root
-            root._right._depth = root._depth + 1
 
         return root
 
@@ -263,6 +272,7 @@ class VEBTree(object):
         # we'll do lca naively in O(log n) instead of O(1)
         visited = set()
         while node_1 is not None or node_2 is not None:
+            # print('node_1, node_2:', node_1, node_2)
             if node_1 in visited:
                 return node_1
             else:
@@ -273,6 +283,7 @@ class VEBTree(object):
                 visited.add(node_2)
             node_1 = node_1.parent
             node_2 = node_2.parent
+            # print('node_1, node_2:', node_1, node_2)
         raise Exception('Did not find LCA.')
 
     @property
@@ -297,4 +308,9 @@ class VEB3Sided(VEBTree):
 
     def __init__(self, memory, node_items):
         VEBTree.__init__(self, memory, node_items, Node3Sided, data_at_leaves=True)
+
+class VEB4Sided(VEBTree):
+
+    def __init__(self, memory, node_items):
+        VEBTree.__init__(self, memory, node_items, Node4Sided, data_at_leaves=True)
 

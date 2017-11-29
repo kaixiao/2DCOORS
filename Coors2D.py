@@ -8,6 +8,7 @@ y_coord = lambda x: x[1]
 class COORS2D2Sided(object):
 
     def __init__(self, memory, points, x_upper_bound=True, y_upper_bound=True):
+        assert len(points) > 0
 
         self.memory = memory
         self.x_upper_bound = x_upper_bound
@@ -83,6 +84,7 @@ class COORS2D2Sided(object):
 class COORS2D3Sided(object):
 
     def __init__(self, memory, points, y_upper_bound=True):
+        assert len(points) > 0
         self.memory = memory
         self.y_upper_bound = y_upper_bound
 
@@ -126,10 +128,40 @@ class COORS2D4Sided(object):
     (query time bounds are the same)
     """
 
-    def __init__(self, points):
-        # TODO: This whole thing
-        pass
+    def __init__(self, memory, points):
+        assert len(points) > 0
+
+        self.memory = memory
+
+        self.points = sorted(points, key=y_coord)
+        node_items = [NodeItem(y, x) for x, y in points]
+        self.yveb = VEB4Sided(memory, node_items)
+
+        self.link_nodes_to_3Sided()
+
+    def link_nodes_to_3Sided(self):
+        for node in self.yveb.veb_ordered_nodes:
+            points = [(v.data, v.key) for v in self.yveb.subtree(node)]
+            node.y_upper_struct = COORS2D3Sided(self.memory, points, \
+                    y_upper_bound=True)
+            node.y_lower_struct = COORS2D3Sided(self.memory, points, \
+                    y_upper_bound=False)
 
     def query(self, x_min, x_max, y_min, y_max):
-        # TODO: This whole thing
-        pass
+        left = self.yveb.predecessor(y_min)
+        if left is None:
+            left = self.yveb.successor(y_min)
+        right = self.yveb.successor(y_max)
+        if right is None:
+            right = self.yveb.predecessor(y_max)
+
+        lca = self.yveb.LCA(left, right)
+        solutions = []
+        if lca.left is not None:
+            solutions.extend(lca.left.y_lower_struct.query(x_min, x_max, y_min))
+        if lca.right is not None:
+            solutions.extend(lca.right.y_upper_struct.query(x_min, x_max, y_max))
+
+        assert len(solutions) == len(set(solutions))
+        return solutions
+

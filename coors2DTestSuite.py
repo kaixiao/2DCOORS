@@ -2,6 +2,7 @@ import unittest
 import Coors2D
 import random
 from cache.memory import Memory
+import time
 
 class TestCoors2D(unittest.TestCase):
 
@@ -48,15 +49,36 @@ class TestCoors2D(unittest.TestCase):
 
             if good_point:
                 if (x, y) not in sol:
-                    print('Quadrant: {}'.format(quadrant))
+                    print('(x_min, x_max, y_bound): {}'.format(
+                            (x_min, x_max, y_bound)))
                     print('Correct point (%s, %s) not in solution' % (x, y))
                     return False
             else:
                 if (x, y) in sol:
-                    print('Quadrant: {}'.format(quadrant))
+                    print('(x_min, x_max, y_bound): {}'.format(
+                            (x_min, x_max, y_bound)))
                     print('Incorrect point (%s, %s) in solution' % (x, y))
                     return False
         return True
+
+    def verify_4Sided_solution(self, points, solutions, x_min, x_max, \
+                               y_min, y_max):
+        sol = set(solutions)
+        for x, y in points:
+            good_point = (x >= x_min and x <= x_max and y >= y_min and y <= y_max)
+
+            if good_point:
+                if (x, y) not in sol:
+                    print('(x_min, x_max, y_min, y_max): {}'.format(
+                            (x_min, x_max, y_min, y_max)))
+                    print('Correct point (%s, %s) not in solution' % (x, y))
+                    return False
+            else:
+                if (x, y) in sol:
+                    print('(x_min, x_max, y_min, y_max): {}'.format(
+                            (x_min, x_max, y_min, y_max)))
+                    print('Incorrect point (%s, %s) in solution' % (x, y))
+                    return False
 
     def verify_2Sided_randomized_queries(self, dirc, suppressed=True):
         x_upper_bound = bool(dirc//2)
@@ -92,7 +114,7 @@ class TestCoors2D(unittest.TestCase):
         if not suppressed:
             print('y_upper_bound:', y_upper_bound)
 
-        for i in range(20):
+        for i in range(10):
             x_min = random.uniform(-1200, 1200)
             x_max = random.uniform(-1200, 1200)
             x_min = min(x_min, x_max)
@@ -102,6 +124,34 @@ class TestCoors2D(unittest.TestCase):
             solutions = obj.query(x_min, x_max, y_bound)
             if not self.verify_3Sided_solution(self.points_1, solutions, \
                     x_min, x_max, y_bound, y_upper_bound):
+                if not suppressed:
+                    print("Test Failed.\n")
+                return False
+
+        if not suppressed:
+            print("Test Passed!\n")
+        return True
+
+    def verify_4Sided_randomized_queries(self, suppressed=True):
+        print("Building 4Sided structure...")
+        t1 = time.time()
+        obj = Coors2D.COORS2D4Sided(self.memory, self.points_1)
+        t2 = time.time()
+        print("Preprocessing completed in {} seconds.".format(t2-t1))
+
+        for i in range(10):
+            x_min = random.uniform(-1200, 1200)
+            x_max = random.uniform(-1200, 1200)
+            x_min = min(x_min, x_max)
+            x_max = max(x_min, x_max)
+            y_min = random.uniform(-1200, 1200)
+            y_max = random.uniform(-1200, 1200)
+            y_min = min(y_min, y_max)
+            y_max = max(y_min, y_max)
+
+            solutions = obj.query(x_min, x_max, y_min, y_max)
+            if not self.verify_4Sided_solution(self.points_1, solutions, \
+                    x_min, x_max, y_min, y_max):
                 if not suppressed:
                     print("Test Failed.\n")
                 return False
@@ -128,11 +178,14 @@ class TestCoors2D(unittest.TestCase):
     def test_3Sided_1(self):
         self.assertTrue(self.verify_3Sided_randomized_queries(1))
 
+    def test_4Sided(self):
+        self.assertTrue(self.verify_4Sided_randomized_queries())
+
 def main():
     t = TestCoors2D()
-    t.test_3Sided_0()
-    t.test_3Sided_1()
+    t.test_4Sided()
 
 if __name__ == '__main__':
-    unittest.main()
+    # unittest.main()
+    main()
 

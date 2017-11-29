@@ -158,7 +158,7 @@ class TestVEB(unittest.TestCase):
         tree = veb.VEB3Sided(self.memory, node_items)
         for node in tree.subtree(tree._root):
             if printout:
-                print(node, node._depth)
+                print(node, node.parent, node._depth)
 
 def main():
     t = TestVEB()
@@ -174,7 +174,10 @@ def main():
     print('----Successor on 15 nodes----')
     print('Values: (y, x)')
     t.test_successor_1(True)
+    t.test_subtree(True)
+    t.test_LCA()
 
 if __name__ == '__main__':
     # main()
     unittest.main()
+
