@@ -78,6 +78,9 @@ class Node(object):
     def __str__(self):
         return str((self.key, self.data))
 
+    def __hash__(self):
+        return hash((self.key, self.data))
+
 class Node2Sided(Node):
     """
     Extends Node class to support xarray index
@@ -235,13 +238,33 @@ class VEBTree(object):
             candidate = candidate.origin
         return candidate
 
-    def BFS(self, root):
-        # returns set of nodes in a given subtree
-        pass
+    def subtree(self, root):
+        # returns list of nodes in a given subtree via BFS
+        frontier = [root]
+        res = []
+        for node in frontier:
+            res.append(node)
+            if node.left is not None:
+                frontier.append(node.left)
+            if node.right is not None:
+                frontier.append(node.right)
+        return res
 
     def LCA(self, node_1, node_2):
-        #TODO: implement this function
-        pass
+        # we'll do lca naively in O(log n) instead of O(1)
+        visited = {}
+        while node_1 is not None and node_2 is not None:
+            if node_1 in visited:
+                return node_1
+            else:
+                visited[node_1] = node_1
+            if node_2 in visited:
+                return node_2
+            else:
+                visited[node_2] = node_2
+            node_1 = node_1.parent
+            node_2 = node_2.parent
+        return self.root
 
     @property
     def root(self):
@@ -258,11 +281,11 @@ class VEB2Sided(VEBTree):
     Constructed from list of NodeItem objects
     """
     def __init__(self, memory, node_items):
-        VEBTree.__init__(self, memory, node_items, Node2Sided, False)
+        VEBTree.__init__(self, memory, node_items, Node2Sided, data_at_leaves=False)
 
 
 class VEB3Sided(VEBTree):
 
     def __init__(self, memory, node_items):
-        VEBTree.__init__(self, memory, node_items, Node3Sided, True)
+        VEBTree.__init__(self, memory, node_items, Node3Sided, data_at_leaves=True)
 

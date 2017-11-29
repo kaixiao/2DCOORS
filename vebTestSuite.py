@@ -5,6 +5,8 @@ import math
 import random
 
 class TestVEB(unittest.TestCase):
+    
+    memory = Memory()
     points_1 = [(-2, -8), (-1, -8), (1, -8), (10, -7), (-2, -6), (-3, -6), \
                 (6, -5), (-10, -3), (-6, -2), (8, -1), (-2, 1), (3, 2), \
                 (4, 3), (-4, 7), (-6, 9)]
@@ -23,8 +25,7 @@ class TestVEB(unittest.TestCase):
     # checks if depths are correctly assigned
     def verify_BST(self, points, printout):
         node_items = [veb.NodeItem(key=y, data=x) for x, y in points]
-        memory = Memory()
-        tree = veb.VEB2Sided(memory, node_items)
+        tree = veb.VEB2Sided(self.memory, node_items)
         frontier = [tree.root]
         max_depth = 0
         # runs BFS and check invariant holds at every node
@@ -56,8 +57,7 @@ class TestVEB(unittest.TestCase):
     # verifies local depth-1 VEB structure; necessary but not sufficient
     def verify_veb_order(self, points, printout):
         node_items = [veb.NodeItem(key=y, data=x) for x, y in points]
-        memory = Memory()
-        tree = veb.VEB2Sided(memory, node_items)
+        tree = veb.VEB2Sided(self.memory, node_items)
         nodes = list(tree.veb_ordered_nodes)
         for i in range(len(nodes)):
             if printout:
@@ -84,8 +84,7 @@ class TestVEB(unittest.TestCase):
     # each time; again, necessary but not sufficient
     def verify_predecessor(self, points, printout):
         node_items = [veb.NodeItem(key=y, data=x) for x, y in points]
-        memory = Memory()
-        tree = veb.VEB2Sided(memory, node_items)
+        tree = veb.VEB2Sided(self.memory, node_items)
         nodes = sorted(tree.veb_ordered_nodes, key=lambda z: -z.key)
         epsilon = 1e-5
         
@@ -107,8 +106,7 @@ class TestVEB(unittest.TestCase):
     # verifier symmetric to predecessor
     def verify_successor(self, points, printout):
         node_items = [veb.NodeItem(key=y, data=x) for x, y in points]
-        memory = Memory()
-        tree = veb.VEB2Sided(memory, node_items)
+        tree = veb.VEB2Sided(self.memory, node_items)
         nodes = sorted(tree.veb_ordered_nodes, key=lambda z: z.key)
         epsilon = 1e-5
         if printout:
@@ -143,6 +141,17 @@ class TestVEB(unittest.TestCase):
 
     def test_successor_3(self, printout=False):
         self.verify_successor(self.points_3, printout)
+        
+    def test_LCA(self):
+        points = [(i, i) for i in range(1, 15)]
+        node_items = [veb.NodeItem(key=x, data=y) for x, y in points]
+        tree = veb.VEB3Sided(self.memory, node_items)
+
+    def test_subtree(self):
+        points = [(i, i) for i in range(1, 15)]
+        node_items = [veb.NodeItem(key=x, data=y) for x, y in points]
+        tree = veb.VEB3Sided(self.memory, node_items)
+
 
 def main():
     t = TestVEB()

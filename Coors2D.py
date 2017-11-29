@@ -2,8 +2,8 @@ from veb import *
 from xarray import XArray
 from cache.memory import Memory
 
-xcoord = lambda x: x[0]
-ycoord = lambda x: x[1]
+x_coord = lambda x: x[0]
+y_coord = lambda x: x[1]
 
 class COORS2D2Sided(object):
 
@@ -14,16 +14,15 @@ class COORS2D2Sided(object):
         self.y_upper_bound = y_upper_bound
 
         # Points are stored sorted by y coordinate
-        self.points = sorted(points, key=ycoord)
+        self.points = sorted(points, key=y_coord)
         node_items = [NodeItem(y, x) for x, y in points]
         self.yveb = VEB2Sided(self.memory, node_items)
 
         # Construct the xarray, must pass in pre-sorted (by y) points
         self.alpha = 2
         self.base_case_length = 10
-        self.xarray = XArray(self.memory, self.points,
-                        self.alpha, self.base_case_length,
-                        self.x_upper_bound, self.y_upper_bound)
+        self.xarray = XArray(self.memory, self.points, self.alpha, \
+                self.base_case_length, self.x_upper_bound, self.y_upper_bound)
         # initialize xarray_index field in each node
         self.link_nodes_to_xarray()
 
@@ -87,7 +86,7 @@ class COORS2D3Sided(object):
         self.memory = memory
         self.y_upper_bound = y_upper_bound
 
-        self.points = sorted(points, key=xcoord)
+        self.points = sorted(points, key=x_coord)
         node_items = [NodeItem(x, y) for x, y in points]
         self.xveb = VEB3Sided(memory, node_items)
 
@@ -95,7 +94,12 @@ class COORS2D3Sided(object):
 
     def link_nodes_to_2Sided(self):
         # store 2Sided structs on points in subtrees for every node in xveb
-        pass
+        for node in xveb.veb_ordered_nodes:
+            points = [(v.key, v.data) for v in xveb.subtree(node)]
+            node.x_upper_struct = COORS2D2Sided(self.memory, points, \
+                    x_upper_bound=True, y_upper_bound=self.y_upper_bound)
+            node.x_lower_struct = COORS2D2Sided(self.memory, points, \
+                    x_upper_bound=False, y_upper_bound=self.y_upper_bound)
 
     def query(self, x_min, x_max, y_bound):
         left = self.xveb.predecessor(x_min)
