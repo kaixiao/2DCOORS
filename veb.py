@@ -7,6 +7,9 @@ class NodeItem(object):
         self.key = key
         self.data = data
 
+    def __eq__(self, other):
+        return self.key == other.key and self.data == other.data
+
     def __str__(self):
         return str((self.key, self.data))
 
@@ -71,6 +74,9 @@ class Node(object):
 
     def is_leaf(self):
         return self._left is None and self._right is None
+
+    def tuple(self):
+        return (self.key, self.data)
 
     def copy(self):
         return type(self)(NodeItem(self.key, self.data))
@@ -221,6 +227,7 @@ class VEBTree(object):
                 current_node = current_node.left
         if self.data_at_leaves and candidate is not None:
             candidate = candidate.origin
+            assert candidate.is_leaf()
         return candidate
 
     def successor(self, key):
@@ -244,27 +251,29 @@ class VEBTree(object):
         res = []
         for node in frontier:
             res.append(node)
+            # print(node._depth)
             if node.left is not None:
                 frontier.append(node.left)
             if node.right is not None:
                 frontier.append(node.right)
+        # print('Subtree size:', len(res))
         return res
 
     def LCA(self, node_1, node_2):
         # we'll do lca naively in O(log n) instead of O(1)
-        visited = {}
-        while node_1 is not None and node_2 is not None:
+        visited = set()
+        while node_1 is not None or node_2 is not None:
             if node_1 in visited:
                 return node_1
             else:
-                visited[node_1] = node_1
+                visited.add(node_1)
             if node_2 in visited:
                 return node_2
             else:
-                visited[node_2] = node_2
+                visited.add(node_2)
             node_1 = node_1.parent
             node_2 = node_2.parent
-        return self.root
+        raise Exception('Did not find LCA.')
 
     @property
     def root(self):

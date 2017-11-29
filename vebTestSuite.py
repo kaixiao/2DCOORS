@@ -143,15 +143,22 @@ class TestVEB(unittest.TestCase):
         self.verify_successor(self.points_3, printout)
         
     def test_LCA(self):
-        points = [(i, i) for i in range(1, 15)]
+        points = [(i, i) for i in range(1, 17)]
         node_items = [veb.NodeItem(key=x, data=y) for x, y in points]
         tree = veb.VEB3Sided(self.memory, node_items)
+        node_1 = tree.predecessor(1)
+        node_2 = tree.predecessor(16)
+        lca = tree.predecessor(9)
+        self.assertEqual(tree.LCA(node_1, node_2).tuple(), lca.tuple())
+        self.assertEqual(tree.LCA(node_1, lca).tuple(), lca.tuple())
 
-    def test_subtree(self):
-        points = [(i, i) for i in range(1, 15)]
+    def test_subtree(self, printout=False):
+        points = [(i, i) for i in range(1, 17)]
         node_items = [veb.NodeItem(key=x, data=y) for x, y in points]
         tree = veb.VEB3Sided(self.memory, node_items)
-
+        for node in tree.subtree(tree._root):
+            if printout:
+                print(node, node._depth)
 
 def main():
     t = TestVEB()

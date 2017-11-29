@@ -26,10 +26,34 @@ class TestCoors2D(unittest.TestCase):
 
             if good_point:
                 if (x, y) not in sol:
+                    print('Quadrant: {}'.format(quadrant))
                     print('Correct point (%s, %s) not in solution' % (x, y))
                     return False
             else:
                 if (x, y) in sol:
+                    print('Quadrant: {}'.format(quadrant))
+                    print('Incorrect point (%s, %s) in solution' % (x, y))
+                    return False
+        return True
+
+    def verify_3Sided_solution(self, points, solutions, x_min, x_max, \
+                               y_bound, y_upper_bound):
+        sol = set(solutions)
+        for x, y in points:
+            good_point = (x >= x_min and x <= x_max)
+            if y_upper_bound:
+                good_point = good_point and y <= y_bound
+            else:
+                good_point = good_point and y >= y_bound
+
+            if good_point:
+                if (x, y) not in sol:
+                    print('Quadrant: {}'.format(quadrant))
+                    print('Correct point (%s, %s) not in solution' % (x, y))
+                    return False
+            else:
+                if (x, y) in sol:
+                    print('Quadrant: {}'.format(quadrant))
                     print('Incorrect point (%s, %s) in solution' % (x, y))
                     return False
         return True
@@ -42,10 +66,10 @@ class TestCoors2D(unittest.TestCase):
                                     x_upper_bound, y_upper_bound)
         
         if not suppressed:
-            print("x_upper_bound: ", x_upper_bound)
-            print("y_upper_bound: ", y_upper_bound)
+            print("x_upper_bound:", x_upper_bound)
+            print("y_upper_bound:", y_upper_bound)
 
-        for i in range(100):
+        for i in range(20):
             quadrant = (random.uniform(-1200, 1200), random.uniform(-1200, 1200))
             # print("Quadrant:", quadrant)
             # print("Len Solutions:", len(solutions))
@@ -53,12 +77,41 @@ class TestCoors2D(unittest.TestCase):
             if not self.verify_2Sided_solutions(self.points_1, quadrant, solutions, \
                          x_upper_bound, y_upper_bound):
                 if not suppressed:
-                    print("Test Failed.")
+                    print("Test Failed.\n")
                 return False
 
         if not suppressed:
-            print("Test Passed!")
+            print("Test Passed!\n")
         return True
+
+    def verify_3Sided_randomized_queries(self, dirc, suppressed=True):
+        y_upper_bound = bool(dirc % 2)
+        
+        obj = Coors2D.COORS2D3Sided(self.memory, self.points_1, y_upper_bound)
+
+        if not suppressed:
+            print('y_upper_bound:', y_upper_bound)
+
+        for i in range(20):
+            x_min = random.uniform(-1200, 1200)
+            x_max = random.uniform(-1200, 1200)
+            x_min = min(x_min, x_max)
+            x_max = max(x_min, x_max)
+            y_bound = random.uniform(-1200, 1200)
+
+            solutions = obj.query(x_min, x_max, y_bound)
+            if not self.verify_3Sided_solution(self.points_1, solutions, \
+                    x_min, x_max, y_bound, y_upper_bound):
+                if not suppressed:
+                    print("Test Failed.\n")
+                return False
+
+        if not suppressed:
+            print("Test Passed!\n")
+        return True
+
+    def test_2Sided_0(self):
+        self.assertTrue(self.verify_2Sided_randomized_queries(0))
 
     def test_2Sided_1(self):
         self.assertTrue(self.verify_2Sided_randomized_queries(1))
@@ -69,22 +122,17 @@ class TestCoors2D(unittest.TestCase):
     def test_2Sided_3(self):
         self.assertTrue(self.verify_2Sided_randomized_queries(3))
 
-    def test_2Sided_4(self):
-        self.assertTrue(self.verify_2Sided_randomized_queries(4))
+    def test_3Sided_0(self):
+        self.assertTrue(self.verify_3Sided_randomized_queries(0))
 
-    def test_2Sided_total(self, total=10):
-        passed = 0
-        for i in range(total):
-            dirc = random.randint(1,4)
-            res = self.verify_2Sided_randomized_queries(dirc)
-            if res:
-                passed += 1
-        print('Passed {} / {} Randomized Tests.'.format(passed, total))
-        self.assertEqual(passed, total)
+    def test_3Sided_1(self):
+        self.assertTrue(self.verify_3Sided_randomized_queries(1))
 
 def main():
     t = TestCoors2D()
-    t.test_2Sided_total()
+    t.test_3Sided_0()
+    t.test_3Sided_1()
 
 if __name__ == '__main__':
     unittest.main()
+

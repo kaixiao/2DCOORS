@@ -94,8 +94,8 @@ class COORS2D3Sided(object):
 
     def link_nodes_to_2Sided(self):
         # store 2Sided structs on points in subtrees for every node in xveb
-        for node in xveb.veb_ordered_nodes:
-            points = [(v.key, v.data) for v in xveb.subtree(node)]
+        for node in self.xveb.veb_ordered_nodes:
+            points = [(v.key, v.data) for v in self.xveb.subtree(node)]
             node.x_upper_struct = COORS2D2Sided(self.memory, points, \
                     x_upper_bound=True, y_upper_bound=self.y_upper_bound)
             node.x_lower_struct = COORS2D2Sided(self.memory, points, \
@@ -112,14 +112,19 @@ class COORS2D3Sided(object):
         lca = self.xveb.LCA(left, right)
         solutions = []
         if lca.left is not None:
-            solutions.extend(lca.left.x_upper_struct.query(x_max, y_bound))
+            solutions.extend(lca.left.x_lower_struct.query(x_min, y_bound))
         if lca.right is not None:
-            solutions.extend(lca.right.x_lower_struct.query(x_min, y_bound))
+            solutions.extend(lca.right.x_upper_struct.query(x_max, y_bound))
 
         assert len(solutions) == len(set(solutions))
         return solutions
 
 class COORS2D4Sided(object):
+    """
+    We will use the natural O(n log^2 n) space implementation instead of 
+    the O(n log^2 n / log log n) space implementation given in class
+    (query time bounds are the same)
+    """
 
     def __init__(self, points):
         # TODO: This whole thing
