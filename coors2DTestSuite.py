@@ -7,6 +7,7 @@ import time
 class TestCoors2D(unittest.TestCase):
 
     memory = Memory()
+
     points_1 = [(random.uniform(-100, 100), random.uniform(-100, 100)) \
                 for _ in range(100)]
     points_2 = [(random.uniform(-1000, 1000), random.uniform(-1000, 1000)) \
@@ -83,11 +84,11 @@ class TestCoors2D(unittest.TestCase):
                     return False
         return True
 
-    def verify_2Sided_random_queries(self, dirc, num_queries=100, suppressed=True):
+    def verify_2Sided_random_queries(self, dirc, points, num_queries=100, suppressed=True):
         x_upper_bound = bool(dirc//2)
         y_upper_bound = bool(dirc%2)
 
-        obj = Coors2D.COORS2D2Sided(self.memory, self.points_1, \
+        obj = Coors2D.COORS2D2Sided(self.memory, points, \
                                     x_upper_bound, y_upper_bound)
         self.memory.reset_disk_accesses()
         self.memory.reset_cell_probes()
@@ -101,7 +102,7 @@ class TestCoors2D(unittest.TestCase):
             # print("Quadrant:", quadrant)
             # print("Len Solutions:", len(solutions))
             solutions = obj.query(*quadrant)
-            if not self.verify_2Sided_solutions(self.points_1, quadrant, solutions, \
+            if not self.verify_2Sided_solutions(points, quadrant, solutions, \
                          x_upper_bound, y_upper_bound):
                 if not suppressed:
                     print("Test Failed.\n")
@@ -115,10 +116,10 @@ class TestCoors2D(unittest.TestCase):
                                                 self.memory.get_cell_probes()))
         return True
 
-    def verify_3Sided_random_queries(self, dirc, num_queries=100, suppressed=True):
+    def verify_3Sided_random_queries(self, dirc, points, num_queries=100, suppressed=True):
         y_upper_bound = bool(dirc % 2)
         
-        obj = Coors2D.COORS2D3Sided(self.memory, self.points_1, y_upper_bound)
+        obj = Coors2D.COORS2D3Sided(self.memory, points, y_upper_bound)
         self.memory.reset_disk_accesses()
         self.memory.reset_cell_probes()
 
@@ -133,7 +134,7 @@ class TestCoors2D(unittest.TestCase):
             y_bound = random.uniform(-1200, 1200)
 
             solutions = obj.query(x_min, x_max, y_bound)
-            if not self.verify_3Sided_solution(self.points_1, solutions, \
+            if not self.verify_3Sided_solution(points, solutions, \
                     x_min, x_max, y_bound, y_upper_bound):
                 if not suppressed:
                     print("Test Failed.\n")
@@ -147,14 +148,14 @@ class TestCoors2D(unittest.TestCase):
                                                 self.memory.get_cell_probes()))
         return True
 
-    def verify_4Sided_random_queries(self, num_queries=100, suppressed=True):
+    def verify_4Sided_random_queries(self, points, num_queries=100, suppressed=True):
         print("Started building 4Sided structure")
         t1 = time.time()
-        obj = Coors2D.COORS2D4Sided(self.memory, self.points_1)
+        obj = Coors2D.COORS2D4Sided(self.memory, points)
         self.memory.reset_disk_accesses()
         self.memory.reset_cell_probes()
         t2 = time.time()
-        print("Preprocessing 4Sided completed in {:.2f}s.".format(t2-t1))
+        print("Preprocessing 4Sided completed in {:.3f}s.".format(t2-t1))
 
         for i in range(num_queries):
             x_min = random.uniform(-1200, 1200)
@@ -167,7 +168,7 @@ class TestCoors2D(unittest.TestCase):
             y_max = max(y_min, y_max)
 
             solutions = obj.query(x_min, x_max, y_min, y_max)
-            if not self.verify_4Sided_solution(self.points_1, solutions, \
+            if not self.verify_4Sided_solution(points, solutions, \
                     x_min, x_max, y_min, y_max):
                 if not suppressed:
                     print("Test Failed.\n")
@@ -181,31 +182,23 @@ class TestCoors2D(unittest.TestCase):
                                                 self.memory.get_cell_probes()))
         return True
 
-    def test_2Sided_0(self, num_queries=100, suppressed=True):
-        self.assertTrue(self.verify_2Sided_random_queries(0, num_queries, suppressed))
-
     def test_2Sided_1(self, num_queries=100, suppressed=True):
-        self.assertTrue(self.verify_2Sided_random_queries(1, num_queries, suppressed))
-
-    def test_2Sided_2(self, num_queries=100, suppressed=True):
-        self.assertTrue(self.verify_2Sided_random_queries(2, num_queries, suppressed))
-
-    def test_2Sided_3(self, num_queries=100, suppressed=True):
-        self.assertTrue(self.verify_2Sided_random_queries(3, num_queries, suppressed))
-
-    def test_3Sided_0(self, num_queries=100, suppressed=True):
-        self.assertTrue(self.verify_3Sided_random_queries(0, num_queries, suppressed))
+        for i in range(4):
+            self.assertTrue(self.verify_2Sided_random_queries(i, self.points_1, \
+                    num_queries, suppressed))
 
     def test_3Sided_1(self, num_queries=100, suppressed=True):
-        self.assertTrue(self.verify_3Sided_random_queries(1, num_queries, suppressed))
+        for i in range(2):
+            self.assertTrue(self.verify_3Sided_random_queries(i, self.points_1, \
+                    num_queries, suppressed))
 
-    def test_4Sided(self, num_queries=100, suppressed=True):
+    def test_4Sided_1(self, num_queries=100, suppressed=True):
         # this function takes a while to run when number of points is large
-        self.assertTrue(self.verify_4Sided_random_queries(num_queries, suppressed))
+        self.assertTrue(self.verify_4Sided_random_queries(self.points_1, num_queries, suppressed))
 
 def main():
     t = TestCoors2D()
-    t._test_4Sided(num_queries=100, suppressed=False)
+    t.test_4Sided_1(num_queries=1000, suppressed=False)
 
 if __name__ == '__main__':
     unittest.main()

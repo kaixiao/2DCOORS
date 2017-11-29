@@ -221,6 +221,19 @@ class VEBTree(object):
         for node in nodes:
             node.memory = self.memory
 
+    def subtree_leaves(self, root):
+        # returns list of leaves in a given subtree via BFS
+        frontier = [root]
+        res = []
+        for node in frontier:
+            if node.is_leaf():
+                res.append(node)
+            if node._left is not None:
+                frontier.append(node._left)
+            if node._right is not None:
+                frontier.append(node._right)
+        return res
+
     def predecessor(self, key):
         # start search from root, returns searched node
         # assumes O(1) extra space in cache
@@ -253,20 +266,6 @@ class VEBTree(object):
         if self.data_at_leaves and candidate is not None:
             candidate = candidate.origin
         return candidate
-
-    def subtree_leaves(self, root):
-        # returns list of leaves in a given subtree via BFS
-        frontier = [root]
-        res = []
-        for node in frontier:
-            if node.is_leaf():
-                res.append(node)
-            if node.left is not None:
-                frontier.append(node.left)
-            if node.right is not None:
-                frontier.append(node.right)
-        return res
-
 
     def LCA(self, node_1, node_2):
         # we'll do lca naively in O(log n) instead of O(1)
