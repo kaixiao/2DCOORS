@@ -37,7 +37,6 @@ class COORS2D2Sided(object):
         for node in self.yveb.veb_ordered_nodes:
             node.xarray_index = self.xarray.y_to_xarray_chunk_map[node.key]
 
-
     def query(self, x_bound, y_bound):
         """
         Returns list of points in closed quadrant
@@ -82,6 +81,7 @@ class COORS2D2Sided(object):
         # print("Read %s" % (read_counter))
         # print("Disk accesses %s" % (self.memory.disk_accesses))
 
+        # just making sure there are no duplicates so logic is correct
         assert len(solutions) == len(list(set(solutions)))
         return solutions
 

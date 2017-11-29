@@ -3,65 +3,64 @@ import math
 
 class VEBTree(object):
 
-    def __init__(self, memory, node_items):
-        # Takes in a nonempty list of NodeItems
-        assert len(node_items) > 0
+    def __init__(self, nodes):
+        """
+        Vanilla VEB tree constructed from list of Node objects
+        """
+        assert len(nodes) > 0
 
-        self._root = self.make_BST(node_items)
-        max_depth = int(math.log(len(node_items), 2))
+        self._root = self.make_BST(nodes)
+        max_depth = int(math.log(len(nodes), 2))
         self.veb_ordered_nodes = self.make_veb_order(self._root, max_depth)
-        self.memory = memory
-        self.offset = memory.add_array_to_disk(self.veb_ordered_nodes)
-        self.initialize_nodes()
+        self.initialize_node_back_pointers(self.veb_ordered_nodes)
 
-    def make_BST(self, node_items, parent=None, unsorted=True):
+    def make_BST(self, nodes, parent=None, srted=False):
         # make a perfect BST from a list of NodeItems
+        # initializes depth of each node
         # returns root node of BST
-        if unsorted:
-            node_items.sort(key=lambda z: z.key)
+        if not srted:
+            nodes.sort(key=lambda x: x.key)
 
-        mid = len(node_items) // 2
-        left_items = node_items[:mid]
-        right_items = node_items[mid+1:]
+        mid = len(nodes) // 2
+        left_items = nodes[:mid]
+        right_items = nodes[mid+1:]
 
-        root = Node(node_items[mid])
-        root.parent = parent
+        root = nodes[mid]
+        root._parent = parent
         if parent is None:
-            root.depth = 0
+            root._depth = 0
         else:
-            root.depth = parent.depth + 1
+            root._depth = parent._depth + 1
 
         if len(left_items):
-            root._left = self.make_BST(left_items, root, False)
-            root._left.parent = root
-            root._left.depth = root.depth + 1
+            root._left = self.make_BST(left_items, root, True)
+            root._left._parent = root
+            root._left._depth = root._depth + 1
 
         if len(right_items):
-            root._right = self.make_BST(right_items, root, False)
-            root._right.parent = root
-            root._right.depth = root.depth + 1
+            root._right = self.make_BST(right_items, root, True)
+            root._right._parent = root
+            root._right._depth = root._depth + 1
 
         return root
 
     def make_veb_order(self, start, depth):
         # given a starting node and max exploration depth, return
         # the list of nodes in the subtree in VEB order
-        assert depth >= 0
-
         if depth == 0:
             return [start]
 
         lower_depth = depth // 2
         upper_depth = depth - lower_depth - 1
 
-        depth_cutoff = start.depth + upper_depth
+        depth_cutoff = start._depth + upper_depth
         frontier = [start]
         recurse_nodes = []
 
         for node in frontier:
-            if node.depth == depth_cutoff + 1:
+            if node._depth == depth_cutoff + 1:
                 recurse_nodes.append(node)
-            if node.depth > depth_cutoff + 1:
+            if node._depth > depth_cutoff + 1:
                 break
             if node._left is not None:
                 frontier.append(node._left)
@@ -74,12 +73,11 @@ class VEBTree(object):
 
         return veb_order
 
-    def initialize_nodes(self):
+    def initialize_node_back_pointers(self, nodes):
         # iterates through veb_ordered_nodes to set veb_index of each node
-        for i, node in enumerate(self.veb_ordered_nodes):
+        for i, node in enumerate(nodes):
             node.veb_index = i
             node.veb = self
-            node.memory = self.memory
 
     def predecessor(self, key):
         # start search from root, returns searched node
@@ -118,14 +116,30 @@ class VEBTree(object):
                 current_node = current_node.right
         return candidate
 
+    def __str__(self):
+        return str(veb_ordered_nodes)
+
+
+class VEB2Sided(VEBTree):
+
+    def __init__(self, memory, node_items):
+        VEBTree.__init__(self, self.make_nodes(node_items))
+        self.memory = memory
+        self.offset = memory.add_array_to_disk(self.veb_ordered_nodes)
+        self.initialize_node_memory_pointer(self.veb_ordered_nodes)
+
+    def make_nodes(self, node_items):
+        return [Node2Sided(x) for x in node_items]
+
+    def initialize_node_memory_pointer(self, nodes):
+        for node in nodes:
+            node.memory = self.memory
+
     @property
     def root(self):
         r = self.memory.read(self.offset)
         assert self._root == r
         return r
-
-    def __str__(self):
-        return str(veb_ordered_nodes)
 
 
 class NodeItem(object):
@@ -137,30 +151,40 @@ class NodeItem(object):
     def __str__(self):
         return str((self.key, self.data))
 
-
 class Node(object):
-    """
-    Node class supports basic attributes: key, data, left child
-    pointer, right child pointer, parent pointer
-    Augmented with: depth, veb_index, xarray_index
-    Assumes every node + all its fields take up one memory slot in our model
-    """
-
+    
     def __init__(self, node_item):
-        # Constructor takes in a NodeItem object
+        # Constructor takes in NodeItem object
         self.key = node_item.key
         self.data = node_item.data
         self._left = None
         self._right = None
         self._parent = None
-        self.depth = None
-        self.xarray_index = None
+        self._depth = None
+
+    def is_root(self):
+        return self._parent is None
+
+    def is_leaf(self):
+        return self._left is None and self._right is None
+
+    def __str__(self):
+        return str((self.key, self.data))
+
+class Node2Sided(Node):
+    """
+    Extends Node class to support veb_index, xarray_index, veb, memory
+    Assumes every node + all its fields take up one memory slot in our model
+    """
+
+    def __init__(self, node_item):
+        Node.__init__(self, node_item)
+        self.xarray_index = None # index in xarray
         self.veb_index = None # index in VEB order
         self.veb = None # pointer to veb object it belongs to
         self.memory = None # pointer to memory structure
-        # self.xarray_index = None # pointer to solution xarray
 
-    def get(self):
+    def read(self):
         # accesses self through memory model
         return self.memory.read(self.veb.offset + self.veb_index)
 
@@ -169,7 +193,7 @@ class Node(object):
         # Enforces access through the cache/disk model
         if self._left is None:
             return None
-        return self._left.get()
+        return self._left.read()
 
     @left.setter
     def left(self, node):
@@ -180,7 +204,7 @@ class Node(object):
     def right(self):
         if self._right is None:
             return None
-        return self._right.get()
+        return self._right.read()
 
     @right.setter
     def right(self, node):
@@ -190,17 +214,9 @@ class Node(object):
     def parent(self):
         if self._parent is None:
             return None
-        return self._parent.get()
+        return self._parent.read()
 
     @parent.setter
     def parent(self, node):
         self._parent = node
 
-    def is_root(self):
-        return self.parent is None
-
-    def is_leaf(self):
-        return self.left is None and self.right is None
-
-    def __str__(self):
-        return str((self.key, self.data))

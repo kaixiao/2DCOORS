@@ -25,23 +25,23 @@ class TestVEB(unittest.TestCase):
     def verify_BST(self, points, printout):
         node_items = [veb.NodeItem(key=y, data=x) for x, y in points]
         memory = Memory()
-        tree = veb.VEBTree(memory, node_items)
+        tree = veb.VEB2Sided(memory, node_items)
         frontier = [tree.root]
         max_depth = 0
         # runs BFS and check invariant holds at every node
         for node in frontier:
             if printout:
-                print(str(node) + ', ' + str(node.depth))
+                print(str(node) + ', ' + str(node._depth))
 
             if node.left is not None:
                 frontier.append(node.left)
                 self.assertTrue(node.left.key <= node.key)
-                self.assertEqual(node.left.depth, node.depth + 1)
+                self.assertEqual(node.left._depth, node._depth + 1)
             if node.right is not None:
                 frontier.append(node.right)
                 self.assertTrue(node.right.key >= node.key)
-                self.assertEqual(node.right.depth, node.depth + 1)
-            max_depth = max(max_depth, node.depth)
+                self.assertEqual(node.right._depth, node._depth + 1)
+            max_depth = max(max_depth, node._depth)
         self.assertEqual(max_depth, int(math.log(len(points), 2)))
 
     def test_make_BST_1(self, printout=False):
@@ -57,11 +57,11 @@ class TestVEB(unittest.TestCase):
     def verify_veb_order(self, points, printout):
         node_items = [veb.NodeItem(key=y, data=x) for x, y in points]
         memory = Memory()
-        tree = veb.VEBTree(memory, node_items)
+        tree = veb.VEB2Sided(memory, node_items)
         nodes = list(tree.veb_ordered_nodes)
         for i in range(len(nodes)):
             if printout:
-                print(str(nodes[i]) + ', ' + str(nodes[i].depth))
+                print(str(nodes[i]) + ', ' + str(nodes[i]._depth))
 
             # checks local structure besides for root and leaves
             if not nodes[i].is_root() and not nodes[i].is_leaf():
@@ -83,7 +83,7 @@ class TestVEB(unittest.TestCase):
     def verify_predecessor(self, points, printout):
         node_items = [veb.NodeItem(key=y, data=x) for x, y in points]
         memory = Memory()
-        tree = veb.VEBTree(memory, node_items)
+        tree = veb.VEB2Sided(memory, node_items)
         nodes = sorted(tree.veb_ordered_nodes, key=lambda z: -z.key)
         epsilon = 1e-5
         
@@ -104,7 +104,7 @@ class TestVEB(unittest.TestCase):
     def verify_successor(self, points, printout):
         node_items = [veb.NodeItem(key=y, data=x) for x, y in points]
         memory = Memory()
-        tree = veb.VEBTree(memory, node_items)
+        tree = veb.VEB2Sided(memory, node_items)
         nodes = sorted(tree.veb_ordered_nodes, key=lambda z: z.key)
         epsilon = 1e-5
         if printout:
