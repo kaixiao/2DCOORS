@@ -48,15 +48,6 @@ class LRUBlock(LRUCacheItem):
 
 class Memory(object):
 
-    def set_cache(self, cache_size):
-        self.cache = LRUCache(cache_size)
-
-    # Zero pad to end of memory if it doesn't align
-    def zero_pad(self):
-        self.disk += [0] * (self.block_size - len(self.disk) % self.block_size)
-        assert(len(self.disk) % self.block_size == 0)
-        # print("Zero padded end of memory!")
-
     def __init__(self, array=None, memory_size=DEFAULT_MEM_SIZE,
                 block_size=DEFAULT_BLOCK_SIZE):
         if array is None:
@@ -67,6 +58,7 @@ class Memory(object):
         self.block_size = block_size
         self.num_blocks = memory_size//block_size
         self.disk_accesses = 0
+        self.cell_probes = 0
 
         if memory_size and block_size:
             self.set_cache(self.num_blocks)
@@ -74,6 +66,14 @@ class Memory(object):
         if len(self.disk) % self.block_size != 0:
             self.zero_pad()
 
+    def set_cache(self, cache_size):
+        self.cache = LRUCache(cache_size)
+
+    # Zero pad to end of memory if it doesn't align
+    def zero_pad(self):
+        self.disk += [0] * (self.block_size - len(self.disk) % self.block_size)
+        assert(len(self.disk) % self.block_size == 0)
+        # print("Zero padded end of memory!")
 
     def add_array_to_disk(self, array):
         # returns array offset in disk
@@ -87,6 +87,7 @@ class Memory(object):
     # Read the element at the index on disk
     def read(self, index):
         self.update_cache(index//self.block_size)
+        self.cell_probes += 1
         return self.disk[index]
 
     # Figure out if block is already in LRU cache
@@ -100,11 +101,17 @@ class Memory(object):
                 Block(self.block_size, disk_chunk))
         self.cache.insertItem(block)
 
+    def get_disk_accesses(self):
+        return self.disk_accesses
+
     def reset_disk_accesses(self):
         self.disk_accesses = 0
 
-    def get_disk_accesses(self):
-        return self.disk_accesses
+    def get_cell_probes(self):
+        return self.cell_probes
+
+    def reset_cell_probes(self):
+        self.cell_probes = 0
 
     # Takes in a Block()
     # FOR NOW: This WILL NOT be used.

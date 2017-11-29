@@ -97,7 +97,7 @@ class COORS2D3Sided(object):
     def link_nodes_to_2Sided(self):
         # store 2Sided structs on points in subtrees for every node in xveb
         for node in self.xveb.veb_ordered_nodes:
-            points = [(v.key, v.data) for v in self.xveb.subtree(node)]
+            points = [(v.key, v.data) for v in self.xveb.subtree_leaves(node)]
             node.x_upper_struct = COORS2D2Sided(self.memory, points, \
                     x_upper_bound=True, y_upper_bound=self.y_upper_bound)
             node.x_lower_struct = COORS2D2Sided(self.memory, points, \
@@ -119,6 +119,7 @@ class COORS2D3Sided(object):
             solutions.extend(lca.right.x_upper_struct.query(x_max, y_bound))
 
         assert len(solutions) == len(set(solutions))
+        # print(len(solutions), len(set(solutions)))
         return solutions
 
 class COORS2D4Sided(object):
@@ -141,7 +142,7 @@ class COORS2D4Sided(object):
 
     def link_nodes_to_3Sided(self):
         for node in self.yveb.veb_ordered_nodes:
-            points = [(v.data, v.key) for v in self.yveb.subtree(node)]
+            points = [(v.data, v.key) for v in self.yveb.subtree_leaves(node)]
             node.y_upper_struct = COORS2D3Sided(self.memory, points, \
                     y_upper_bound=True)
             node.y_lower_struct = COORS2D3Sided(self.memory, points, \
