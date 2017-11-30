@@ -18,7 +18,9 @@ def generate_boxes():
     #TODO
     pass
 
-def evaluation(points, boxes):
+def evaluation(points, boxes, memory, datastructure_type):
     #TODO
     pass
 
+def main():
+	f
