@@ -1,6 +1,7 @@
 from veb import *
 from xarray import XArray
 from cache.memory import Memory
+from Ors2D import ORS2D
 
 x_coord = lambda x: x[0]
 y_coord = lambda x: x[1]
@@ -124,7 +125,7 @@ class COORS2D3Sided(object):
         # print(len(solutions), len(set(solutions)))
         return solutions
 
-class COORS2D4Sided(object):
+class COORS2D4Sided(ORS2D):
     """
     We will use the natural O(n log^2 n) space implementation instead of 
     the O(n log^2 n / log log n) space implementation given in class
