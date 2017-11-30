@@ -54,7 +54,7 @@ class COORS2D2Sided(object):
             prev_x = float('inf')
 
         for i in range(rep_node.xarray_index, len(self.xarray.xarray)):
-            point = self.xarray.get(i)
+            point = self.xarray[i].read()
             # read_counter += 1
             # point = self.xarray.xarray[i]
 
