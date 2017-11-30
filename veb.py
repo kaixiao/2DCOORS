@@ -1,41 +1,22 @@
 # Assumes each node + all its fields are stored in one memory cell
 import math
-
-class NodeItem(object):
-
-    def __init__(self, key, data):
-        self.key = key
-        self.data = data
-
-    def __eq__(self, other):
-        return self.key == other.key and self.data == other.data
-
-    def __str__(self):
-        return str((self.key, self.data))
+from Node import Node, NodeItem
 
 
-class Node(object):
+class VEBNode(object):
     """
     Supports basic node features key, data, left, right, parent, depth
     Augmented with external memory model support when accessing fields
     Assumes every node + all its fields take up one memory slot in our model
     """
-    def __init__(self, node_item):
+    def __init__(self, memory, node_item):
         # Constructor takes in NodeItem object
-        self.key = node_item.key
-        self.data = node_item.data
+        Node.__init__(self, memory, node_item)
         self._left = None
         self._right = None
         self._parent = None
         self._depth = None
-        self.origin = self # points to original copy
-        self.veb_index = None # index in VEB order
-        self.veb = None # pointer to veb object it belongs to
-        self.memory = None # pointer to memory structure
-
-    def read(self):
-        # accesses self through memory model
-        return self.memory.read(self.veb.offset + self.veb_index)
+        self.original = self # pointer to original copy, applicable when data at disk
 
     @property
     def left(self):
@@ -47,6 +28,7 @@ class Node(object):
     @left.setter
     def left(self, node):
         # dynamic updates not supported yet
+        raise Exception("Writes not supported yet")
         self._left = node
 
     @property
@@ -57,6 +39,7 @@ class Node(object):
 
     @right.setter
     def right(self, node):
+        raise Exception("Writes not supported yet")
         self._right = node
 
     @property
@@ -67,6 +50,7 @@ class Node(object):
 
     @parent.setter
     def parent(self, node):
+        raise Exception("Writes not supported yet")
         self._parent = node
 
     def is_root(self):
@@ -87,34 +71,35 @@ class Node(object):
     def __hash__(self):
         return hash((self.key, self.data))
 
-class Node2Sided(Node):
+
+class Node2Sided(VEBNode):
     """
-    Extends Node class to support xarray index
+    Extends VEBNode class to support xarray index
     """
 
     def __init__(self, node_item):
-        Node.__init__(self, node_item)
+        VEBNode.__init__(self, node_item)
         self.xarray_index = None # index in xarray
 
 
-class Node3Sided(Node):
+class Node3Sided(VEBNode):
     """
-    Extends Node class to support pointers to Coors2D2Sided objects
+    Extends VEBNode class to support pointers to Coors2D2Sided objects
     """
 
     def __init__(self, node_item):
-        Node.__init__(self, node_item)
+        VEBNode.__init__(self, node_item)
         self.x_upper_struct = None
         self.x_lower_struct = None
 
 
-class Node4Sided(Node):
+class Node4Sided(VEBNode):
     """
     Similar to Node3Sided class
     """
 
     def __init__(self, node_item):
-        Node.__init__(self, node_item)
+        VEBNode.__init__(self, node_item)
         self.y_upper_struct = None
         self.y_lower_struct = None
 
@@ -130,23 +115,22 @@ class VEBTree(object):
         assert len(node_items) > 0
 
         if node_builder is None:
-            self.node_builder = Node
+            self.node_builder = VEBNode
         else:
             self.node_builder = node_builder
         self.data_at_leaves = data_at_leaves
         
-        self.nodes = [node_builder(x) for x in node_items]
-        self._root = self.make_BST(self.nodes)
+        self.memory = memory
+        self.nodes = [node_builder(memory, x) for x in node_items]
+        self._root = self.make_BST(self.nodes, self.data_at_leaves)
 
         max_depth = int(math.log(len(node_items), 2) + data_at_leaves)
         self.veb_ordered_nodes = self.make_veb_order(self._root, max_depth)
         self.initialize_node_back_pointers(self.veb_ordered_nodes)
 
-        self.memory = memory
         self.offset = memory.add_array_to_disk(self.veb_ordered_nodes)
-        self.initialize_node_memory_pointer(self.veb_ordered_nodes)
 
-    def make_BST(self, nodes, parent=None, srted=False):
+    def make_BST(self, nodes, data_at_leaves, parent=None, srted=False):
         # make a perfect BST from a list of NodeItems
         # initializes depth of each node
         # returns root node of BST
@@ -158,11 +142,11 @@ class VEBTree(object):
             left_nodes = []
             right_nodes = []
             root = nodes[0]
-        elif self.data_at_leaves:
+        elif data_at_leaves:
             left_nodes = nodes[:mid]
             right_nodes = nodes[mid:]
             root = nodes[mid].copy()
-            root.origin = nodes[mid]
+            root.original = nodes[mid]
         else:
             left_nodes = nodes[:mid]
             right_nodes = nodes[mid+1:]
@@ -175,10 +159,10 @@ class VEBTree(object):
             root._depth = parent._depth + 1
 
         if len(left_nodes):
-            root._left = self.make_BST(left_nodes, root, True)
+            root._left = self.make_BST(left_nodes, data_at_leaves, root, True)
 
         if len(right_nodes):
-            root._right = self.make_BST(right_nodes, root, True)
+            root._right = self.make_BST(right_nodes, data_at_leaves, root, True)
 
         return root
 
@@ -237,7 +221,7 @@ class VEBTree(object):
     def predecessor(self, key):
         # start search from root, returns searched node
         # assumes O(1) extra space in cache
-        # memory transfers from reading nodes are accounted for by Node class
+        # memory transfers from reading nodes are accounted for by VEBNode class
         candidate = None
         current_node = self.root
         while current_node is not None:
@@ -248,7 +232,7 @@ class VEBTree(object):
             else:
                 current_node = current_node.left
         if self.data_at_leaves and candidate is not None:
-            candidate = candidate.origin
+            candidate = candidate.original
             assert candidate.is_leaf()
         return candidate
 
@@ -264,7 +248,7 @@ class VEBTree(object):
             else:
                 current_node = current_node.right
         if self.data_at_leaves and candidate is not None:
-            candidate = candidate.origin
+            candidate = candidate.original
         return candidate
 
     def LCA(self, node_1, node_2):

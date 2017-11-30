@@ -1,4 +1,5 @@
 from veb import *
+from Node import NodeItem
 from xarray import XArray
 from cache.memory import Memory
 from Ors2D import ORS2D
@@ -35,7 +36,7 @@ class COORS2D2Sided(object):
 
     def query(self, x_bound, y_bound):
         """
-        Returns list of points in closed quadrant
+        Returns list of point tuples in closed query quadrant
         Only supports points with distinct x values
         """
         if self.y_upper_bound:
@@ -48,7 +49,6 @@ class COORS2D2Sided(object):
                 rep_node = self.yveb.successor(y_bound)
 
         solutions = []
-        # read_counter = 0
         if self.x_upper_bound:
             prev_x = -float('inf')
         else:
@@ -56,8 +56,6 @@ class COORS2D2Sided(object):
 
         for i in range(rep_node.xarray_index, len(self.xarray.xarray)):
             point = self.xarray.get(i)
-            # read_counter += 1
-            # point = self.xarray.xarray[i]
 
             if self.x_upper_bound and point[0] > x_bound:
                 break
@@ -73,9 +71,6 @@ class COORS2D2Sided(object):
                 solutions.append(point)
             if not self.y_upper_bound and point[1] >= y_bound:
                 solutions.append(point)
-
-        # print("Read %s" % (read_counter))
-        # print("Disk accesses %s" % (self.memory.disk_accesses))
 
         # making sure there are no duplicates so logic is correct
         assert len(solutions) == len(set(solutions))
