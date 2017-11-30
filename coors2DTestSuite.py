@@ -84,7 +84,8 @@ class TestCoors2D(unittest.TestCase):
                     return False
         return True
 
-    def verify_2Sided_random_queries(self, dirc, points, num_queries=100, suppressed=True):
+    def verify_2Sided_random_queries(self, dirc, points, num_queries=100, \
+                                     suppressed=True):
         x_upper_bound = bool(dirc//2)
         y_upper_bound = bool(dirc%2)
 
@@ -116,7 +117,8 @@ class TestCoors2D(unittest.TestCase):
                                                 self.memory.get_cell_probes()))
         return True
 
-    def verify_3Sided_random_queries(self, dirc, points, num_queries=100, suppressed=True):
+    def verify_3Sided_random_queries(self, dirc, points, num_queries=100, \
+                                     suppressed=True):
         y_upper_bound = bool(dirc % 2)
         
         obj = Coors2D.COORS2D3Sided(self.memory, points, y_upper_bound)
@@ -141,15 +143,15 @@ class TestCoors2D(unittest.TestCase):
                 return False
 
         if not suppressed:
-            print("Test Passed!\n")
-            print("Queries: {}, Disk accesses: {}, Cell probes: {}".format(
+            print("Test Passed!")
+            print("Queries: {}, Disk accesses: {}, Cell probes: {}\n".format(
                                                 num_queries, 
                                                 self.memory.get_disk_accesses(), 
                                                 self.memory.get_cell_probes()))
         return True
 
     def verify_4Sided_random_queries(self, points, num_queries=100, suppressed=True):
-        print("Started building 4Sided structure")
+        print("Started building 4Sided structure on {} points...".format(len(points)))
         t1 = time.time()
         obj = Coors2D.COORS2D4Sided(self.memory, points)
         self.memory.reset_disk_accesses()
@@ -175,8 +177,8 @@ class TestCoors2D(unittest.TestCase):
                 return False
 
         if not suppressed:
-            print("Test Passed for 4Sided!\n")
-            print("Queries: {}, Disk accesses: {}, Cell probes: {}".format(
+            print("Test Passed for 4Sided!")
+            print("Queries: {}, Disk accesses: {}, Cell probes: {}\n".format(
                                                 num_queries, 
                                                 self.memory.get_disk_accesses(), 
                                                 self.memory.get_cell_probes()))
@@ -194,13 +196,19 @@ class TestCoors2D(unittest.TestCase):
 
     def test_4Sided_1(self, num_queries=100, suppressed=True):
         # this function takes a while to run when number of points is large
-        self.assertTrue(self.verify_4Sided_random_queries(self.points_1, num_queries, suppressed))
+        self.assertTrue(self.verify_4Sided_random_queries(
+            self.points_1, num_queries, suppressed))
+
+    def test_4Sided_2(self, num_queries=100, suppressed=True):
+        self.assertTrue(self.verify_4Sided_random_queries(
+            self.points_2, num_queries, suppressed))
 
 def main():
     t = TestCoors2D()
     t.test_4Sided_1(num_queries=1000, suppressed=False)
+    t.test_4Sided_2(num_queries=1000, suppressed=False)
 
 if __name__ == '__main__':
-    unittest.main()
-    # main()
+    # unittest.main()
+    main()
 

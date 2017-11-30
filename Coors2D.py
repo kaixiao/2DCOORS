@@ -104,6 +104,8 @@ class COORS2D3Sided(object):
                     x_upper_bound=False, y_upper_bound=self.y_upper_bound)
 
     def query(self, x_min, x_max, y_bound):
+        assert x_min <= x_max
+
         left = self.xveb.predecessor(x_min)
         if left is None:
             left = self.xveb.successor(x_min)
@@ -149,6 +151,8 @@ class COORS2D4Sided(object):
                     y_upper_bound=False)
 
     def query(self, x_min, x_max, y_min, y_max):
+        assert x_min <= x_max and y_min <= y_max
+
         left = self.yveb.predecessor(y_min)
         if left is None:
             left = self.yveb.successor(y_min)
