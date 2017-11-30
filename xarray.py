@@ -1,4 +1,5 @@
 from cache.memory import Memory
+from Node import Node, NodeItem
 
 xcoord = lambda x: x[0]
 ycoord = lambda x: x[1]
@@ -42,7 +43,7 @@ class XArray(object):
         # print("inside: x_upper_bound: ", x_upper_bound)
         # print("inside: y_upper_bound: ", y_upper_bound)
 
-        self.xarray=[]
+        xarray_points=[]
         self.y_to_xarray_chunk_map=dict()
         self.alpha = alpha
         self.memory = memory
@@ -100,7 +101,7 @@ class XArray(object):
                     p_i_minus_1 = [s for s in S_i if s[0] <= x_i]
                 else:
                     p_i_minus_1 = [s for s in S_i if s[0] >= x_i]
-                self.xarray = self.xarray + p_i_minus_1
+                xarray_points = xarray_points + p_i_minus_1
                 xarr_start_i += len(p_i_minus_1)
 
                 # Update S_i from S_{i-1}
@@ -122,7 +123,7 @@ class XArray(object):
 
                 for k in range(start_i, len(all_yvals)):
                     self.y_to_xarray_chunk_map[all_yvals[k]] = xarr_start_i
-                self.xarray = self.xarray + S_i
+                    xarray_points = xarray_points + S_i
                 break
 
         # It is also possible that the final block is larger than the
@@ -131,10 +132,11 @@ class XArray(object):
             # print("Final block is dense!")
             for k in range(start_i, len(all_yvals)):
                 self.y_to_xarray_chunk_map[all_yvals[k]] = xarr_start_i
-            self.xarray = self.xarray + S_i
+            xarray_points = xarray_points + S_i
 
         # Add to memory
+        self.xarray = [Node(self.memory, NodeItem(xarr_point)) for xarr_point in xarray_points]
         self.memory.add_array_to_disk(self.xarray)
 
-    def get(self, index):
-        return self.memory.read(self.memory_disk_offset + index)
+    # def get(self, index):
+    #     return self.memory.read(self.memory_disk_offset + index)

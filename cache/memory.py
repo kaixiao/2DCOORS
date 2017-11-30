@@ -1,5 +1,6 @@
 # import numpy as np
 from cache.LRU import LRUCache, LRUCacheItem
+from Node import Node
 
 DEFAULT_MEM_SIZE = 128
 DEFAULT_BLOCK_SIZE = 8
@@ -75,10 +76,18 @@ class Memory(object):
         assert(len(self.disk) % self.block_size == 0)
         # print("Zero padded end of memory!")
 
+    # Should only be passed in an array of Nodes
     def add_array_to_disk(self, array):
         # returns array offset in disk
         offset = len(self.disk)
         self.disk += array
+        # update each node's memory_index
+        # import pdb
+        # pdb.set_trace()
+        assert(isinstance(array[0], Node))
+
+        for i in range(len(array)):
+            array[i].memory_index = offset + i
         if len(self.disk) % self.block_size != 0:
             self.zero_pad()
         return offset

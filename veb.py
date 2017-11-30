@@ -3,7 +3,7 @@ import math
 from Node import Node, NodeItem
 
 
-class VEBNode(object):
+class VEBNode(Node):
     """
     Supports basic node features key, data, left, right, parent, depth
     Augmented with external memory model support when accessing fields
@@ -63,7 +63,7 @@ class VEBNode(object):
         return (self.key, self.data)
 
     def copy(self):
-        return type(self)(NodeItem(self.key, self.data))
+        return type(self)(self.memory, NodeItem(self.key, self.data))
 
     def __str__(self):
         return str((self.key, self.data))
@@ -77,8 +77,8 @@ class Node2Sided(VEBNode):
     Extends VEBNode class to support xarray index
     """
 
-    def __init__(self, node_item):
-        VEBNode.__init__(self, node_item)
+    def __init__(self, memory, node_item):
+        VEBNode.__init__(self, memory, node_item)
         self.xarray_index = None # index in xarray
 
 
@@ -87,8 +87,8 @@ class Node3Sided(VEBNode):
     Extends VEBNode class to support pointers to Coors2D2Sided objects
     """
 
-    def __init__(self, node_item):
-        VEBNode.__init__(self, node_item)
+    def __init__(self, memory, node_item):
+        VEBNode.__init__(self, memory, node_item)
         self.x_upper_struct = None
         self.x_lower_struct = None
 
@@ -98,8 +98,8 @@ class Node4Sided(VEBNode):
     Similar to Node3Sided class
     """
 
-    def __init__(self, node_item):
-        VEBNode.__init__(self, node_item)
+    def __init__(self, memory, node_item):
+        VEBNode.__init__(self, memory, node_item)
         self.y_upper_struct = None
         self.y_lower_struct = None
 

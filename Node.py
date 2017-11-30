@@ -1,6 +1,6 @@
 class NodeItem(object):
 
-    def __init__(self, key, data):
+    def __init__(self, key, data=None):
         self.key = key
         self.data = data
 
@@ -21,7 +21,7 @@ class Node(object):
 
     def read(self):
         # accesses self through memory model
-        if memory_index is None:
+        if self.memory_index is None:
             raise Exception("Node not added to disk yet.")
         return self.memory.read(self.memory_index)
 
