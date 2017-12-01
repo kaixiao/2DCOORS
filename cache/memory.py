@@ -122,9 +122,8 @@ class Memory(object):
     def reset_cell_probes(self):
         self.cell_probes = 0
 
-    # Takes in a Block()
-    # FOR NOW: This WILL NOT be used.
     def write_block(self, index, block):
+        raise Exeception("Writes are not supported yet.")
         self.disk_accesses += 1
         self.disk[index*self.block_size:
             (index+1)*self.block_size] = block.as_list()

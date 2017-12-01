@@ -1,5 +1,4 @@
 import unittest
-# import Coors2D
 import xarray
 import math
 import random
@@ -19,6 +18,7 @@ class TestXarray(unittest.TestCase):
     points_3 = [(random.randint(-1000, 1000), random.randint(-1000, 1000)) for \
                 x in range(1000)]
     # points_3 = [(992, -930), (990, -489), (985, -668), (976, -81), (969, -110), (968, -245), (964, -224), (960, -87), (960, -153), (960, -990), (947, -861)]
+
     def verify(self, points, printout):
         # Construct xarray (this is the slowest part)
         alpha = 2
