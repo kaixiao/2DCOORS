@@ -1,6 +1,6 @@
 import unittest
 import Coors2D
-import random
+import random as rd
 from cache.memory import Memory
 import time
 
@@ -8,10 +8,8 @@ class TestCoors2D(unittest.TestCase):
 
     memory = Memory()
 
-    points_1 = [(random.uniform(-100, 100), random.uniform(-100, 100)) \
-                for _ in range(100)]
-    points_2 = [(random.uniform(-1000, 1000), random.uniform(-1000, 1000)) \
-                for _ in range(1024)]
+    pbound = 100
+    qbound = 120
     
     def verify_2Sided_solutions(self, points, quadrant, solutions, \
                                x_upper_bound, y_upper_bound):
@@ -30,13 +28,13 @@ class TestCoors2D(unittest.TestCase):
 
             if good_point:
                 if (x, y) not in sol:
-                    print('Quadrant: {}'.format(quadrant))
-                    print('Correct point (%s, %s) not in solution' % (x, y))
+                    print('\nQuadrant: {}'.format(quadrant))
+                    print('Correct point (%.2f, %.2f) not in solution.\n' % (x, y))
                     return False
             else:
                 if (x, y) in sol:
-                    print('Quadrant: {}'.format(quadrant))
-                    print('Incorrect point (%s, %s) in solution' % (x, y))
+                    print('\nQuadrant: {}'.format(quadrant))
+                    print('Incorrect point (%.2f, %.2f) in solution.\n' % (x, y))
                     return False
         return True
 
@@ -52,15 +50,15 @@ class TestCoors2D(unittest.TestCase):
 
             if good_point:
                 if (x, y) not in sol:
-                    print('(x_min, x_max, y_bound): {}'.format(
-                            (x_min, x_max, y_bound)))
-                    print('Correct point (%s, %s) not in solution' % (x, y))
+                    print('\n(x_min, x_max, y_bound):' \
+                          '({:.2f}, {:.2f}, {:.2f})'.format(x_min, x_max, y_bound))
+                    print('Correct point (%.2f, %.2f) not in solution.\n' % (x, y))
                     return False
             else:
                 if (x, y) in sol:
-                    print('(x_min, x_max, y_bound): {}'.format(
-                            (x_min, x_max, y_bound)))
-                    print('Incorrect point (%s, %s) in solution' % (x, y))
+                    print('\n(x_min, x_max, y_bound):' \
+                          '({:.2f}, {:.2f}, {:.2f})'.format(x_min, x_max, y_bound))
+                    print('Incorrect point (%.2f, %.2f) in solution.\n' % (x, y))
                     return False
         return True
 
@@ -72,20 +70,20 @@ class TestCoors2D(unittest.TestCase):
 
             if good_point:
                 if (x, y) not in sol:
-                    print('(x_min, x_max, y_min, y_max): {}'.format(
-                            (x_min, x_max, y_min, y_max)))
-                    print('Correct point (%s, %s) not in solution' % (x, y))
+                    print('\n(x_min, x_max, y_min, y_max): ({:.2f}, {:.2f},' \
+                          '{:.2f}, {:.2f})'.format(x_min, x_max, y_min, y_max))
+                    print('Correct point (%.2f, %.2f) not in solution.\n' % (x, y))
                     return False
             else:
                 if (x, y) in sol:
-                    print('(x_min, x_max, y_min, y_max): {}'.format(
-                            (x_min, x_max, y_min, y_max)))
-                    print('Incorrect point (%s, %s) in solution' % (x, y))
+                    print('\n(x_min, x_max, y_min, y_max): ({:.2f}, {:.2f},' \
+                          '{:.2f}, {:.2f})'.format(x_min, x_max, y_min, y_max))
+                    print('Incorrect point (%.2f, %.2f) in solution.\n' % (x, y))
                     return False
         return True
 
-    def verify_2Sided_random_queries(self, dirc, points, num_queries=100, \
-                                     suppressed=True):
+    def verify_2Sidedrandomqueries(self, dirc, points, num_queries, \
+                                     out=False):
         x_upper_bound = bool(dirc//2)
         y_upper_bound = bool(dirc%2)
 
@@ -94,22 +92,22 @@ class TestCoors2D(unittest.TestCase):
         self.memory.reset_disk_accesses()
         self.memory.reset_cell_probes()
         
-        if not suppressed:
+        if out:
             print("x_upper_bound:", x_upper_bound)
             print("y_upper_bound:", y_upper_bound)
 
         for i in range(num_queries):
-            quadrant = (random.uniform(-1200, 1200), random.uniform(-1200, 1200))
+            quadrant = (rd.uniform(-self.qbound, self.qbound), rd.uniform(-self.qbound, self.qbound))
             # print("Quadrant:", quadrant)
             # print("Len Solutions:", len(solutions))
             solutions = obj.query(*quadrant)
             if not self.verify_2Sided_solutions(points, quadrant, solutions, \
                          x_upper_bound, y_upper_bound):
-                if not suppressed:
+                if out:
                     print("Test Failed.\n")
                 return False
 
-        if not suppressed:
+        if out:
             print("Test Passed!\n")
             print("Queries: {}, Disk accesses: {}, Cell probes: {}".format(
                                                 num_queries, 
@@ -117,32 +115,32 @@ class TestCoors2D(unittest.TestCase):
                                                 self.memory.get_cell_probes()))
         return True
 
-    def verify_3Sided_random_queries(self, dirc, points, num_queries=100, \
-                                     suppressed=True):
+    def verify_3Sidedrandomqueries(self, dirc, points, num_queries, \
+                                     out=False):
         y_upper_bound = bool(dirc % 2)
         
         obj = Coors2D.COORS2D3Sided(self.memory, points, y_upper_bound)
         self.memory.reset_disk_accesses()
         self.memory.reset_cell_probes()
 
-        if not suppressed:
+        if out:
             print('y_upper_bound:', y_upper_bound)
 
         for i in range(num_queries):
-            x_min = random.uniform(-1200, 1200)
-            x_max = random.uniform(-1200, 1200)
+            x_min = rd.uniform(-self.qbound, self.qbound)
+            x_max = rd.uniform(-self.qbound, self.qbound)
             x_min = min(x_min, x_max)
             x_max = max(x_min, x_max)
-            y_bound = random.uniform(-1200, 1200)
+            y_bound = rd.uniform(-self.qbound, self.qbound)
 
             solutions = obj.query(x_min, x_max, y_bound)
             if not self.verify_3Sided_solution(points, solutions, \
                     x_min, x_max, y_bound, y_upper_bound):
-                if not suppressed:
+                if out:
                     print("Test Failed.\n")
                 return False
 
-        if not suppressed:
+        if out:
             print("Test Passed!")
             print("Queries: {}, Disk accesses: {}, Cell probes: {}\n".format(
                                                 num_queries, 
@@ -150,33 +148,36 @@ class TestCoors2D(unittest.TestCase):
                                                 self.memory.get_cell_probes()))
         return True
 
-    def verify_4Sided_random_queries(self, points, num_queries=100, suppressed=True):
-        print("Started building 4Sided structure on {} points...".format(len(points)))
+    def verify_4Sidedrandomqueries(self, points, num_queries, out=False):
+        if out:
+            print("\nStarted building 4Sided structure on {} points...".format(
+                                                                    len(points)))
         t1 = time.time()
         obj = Coors2D.COORS2D4Sided(self.memory, points)
         self.memory.reset_disk_accesses()
         self.memory.reset_cell_probes()
         t2 = time.time()
-        print("Preprocessing 4Sided completed in {:.3f}s.".format(t2-t1))
+        if out:
+            print("Preprocessing 4Sided completed in {:.3f}s.".format(t2-t1))
 
         for i in range(num_queries):
-            x_min = random.uniform(-1200, 1200)
-            x_max = random.uniform(-1200, 1200)
+            x_min = rd.uniform(-self.qbound, self.qbound)
+            x_max = rd.uniform(-self.qbound, self.qbound)
             x_min = min(x_min, x_max)
             x_max = max(x_min, x_max)
-            y_min = random.uniform(-1200, 1200)
-            y_max = random.uniform(-1200, 1200)
+            y_min = rd.uniform(-self.qbound, self.qbound)
+            y_max = rd.uniform(-self.qbound, self.qbound)
             y_min = min(y_min, y_max)
             y_max = max(y_min, y_max)
 
             solutions = obj.query(x_min, x_max, y_min, y_max)
             if not self.verify_4Sided_solution(points, solutions, \
                     x_min, x_max, y_min, y_max):
-                if not suppressed:
+                if out:
                     print("Test Failed.\n")
                 return False
 
-        if not suppressed:
+        if out:
             print("Test Passed for 4Sided!")
             print("Queries: {}, Disk accesses: {}, Cell probes: {}\n".format(
                                                 num_queries, 
@@ -184,31 +185,40 @@ class TestCoors2D(unittest.TestCase):
                                                 self.memory.get_cell_probes()))
         return True
 
-    def test_2Sided_1(self, num_queries=100, suppressed=True):
-        for i in range(4):
-            self.assertTrue(self.verify_2Sided_random_queries(i, self.points_1, \
-                    num_queries, suppressed))
+    def test_2Sided_1(self, trials=10, num_points=100, num_queries=1000, out=False):
+        for i in range(trials):
+            points = [(rd.uniform(-self.pbound, self.pbound), 
+                       rd.uniform(-self.pbound, self.pbound))
+                       for _ in range(num_points)]
+            for dirc in range(4):
+                self.assertTrue(self.verify_2Sidedrandomqueries(dirc, points, \
+                        num_queries, out))
 
-    def test_3Sided_1(self, num_queries=100, suppressed=True):
-        for i in range(2):
-            self.assertTrue(self.verify_3Sided_random_queries(i, self.points_1, \
-                    num_queries, suppressed))
+    def test_3Sided_1(self, trials=10, num_points=100, num_queries=1000, out=False):
+        for i in range(trials):
+            points = [(rd.uniform(-self.pbound, self.pbound), 
+                       rd.uniform(-self.pbound, self.pbound))
+                       for _ in range(num_points)]
+            for dirc in range(2):
+                self.assertTrue(self.verify_3Sidedrandomqueries(dirc, points, \
+                        num_queries, out))
 
-    def test_4Sided_1(self, num_queries=100, suppressed=True):
+    def test_4Sided_1(self, trials=10, num_points=100, num_queries=1000, out=False):
         # this function takes a while to run when number of points is large
-        self.assertTrue(self.verify_4Sided_random_queries(
-            self.points_1, num_queries, suppressed))
-
-    def test_4Sided_2(self, num_queries=100, suppressed=True):
-        self.assertTrue(self.verify_4Sided_random_queries(
-            self.points_2, num_queries, suppressed))
+        for i in range(trials):
+            points = [(rd.uniform(-self.pbound, self.pbound), 
+                       rd.uniform(-self.pbound, self.pbound))
+                       for _ in range(num_points)]
+            self.assertTrue(self.verify_4Sidedrandomqueries(
+                    points, num_queries, out))
+            print('Passed trial {} of {} for 4Sided.'.format(i+1, trials))
 
 def main():
     t = TestCoors2D()
-    t.test_4Sided_1(num_queries=1000, suppressed=False)
-    t.test_4Sided_2(num_queries=1000, suppressed=False)
+    t.test_4Sided_1(trials=10, num_points=100, num_queries=1000, out=True)
+    t.test_4Sided_1(trials=1, num_points=1000, num_queries=1000, out=True)
 
 if __name__ == '__main__':
-    # unittest.main()
-    main()
+    unittest.main()
+    # main()
 

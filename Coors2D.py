@@ -111,13 +111,16 @@ class COORS2D3Sided(object):
 
         lca = self.xveb.LCA(left, right)
         solutions = []
-        if lca.left is not None:
+        if lca.is_leaf():
+            x, y = lca.tuple()
+            if x_min <= x <= x_max and (self.y_upper_bound and y <= y_bound \
+                    or not self.y_upper_bound and y >= y_bound):
+                solutions.append(lca.tuple())
+        else:
             solutions.extend(lca.left.x_lower_struct.query(x_min, y_bound))
-        if lca.right is not None:
             solutions.extend(lca.right.x_upper_struct.query(x_max, y_bound))
 
         assert len(solutions) == len(set(solutions))
-        # print(len(solutions), len(set(solutions)))
         return solutions
 
 class COORS2D4Sided(ORS2D):
@@ -158,9 +161,12 @@ class COORS2D4Sided(ORS2D):
 
         lca = self.yveb.LCA(left, right)
         solutions = []
-        if lca.left is not None:
+        if lca.is_leaf():
+            x, y = lca.tuple()
+            if x_min <= x <= x_max and y_min <= y <= y_max:
+                solutions.append(lca.tuple())
+        else:
             solutions.extend(lca.left.y_lower_struct.query(x_min, x_max, y_min))
-        if lca.right is not None:
             solutions.extend(lca.right.y_upper_struct.query(x_min, x_max, y_max))
 
         assert len(solutions) == len(set(solutions))
