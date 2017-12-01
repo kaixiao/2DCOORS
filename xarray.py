@@ -123,7 +123,7 @@ class XArray(object):
 
                 for k in range(start_i, len(all_yvals)):
                     self.y_to_xarray_chunk_map[all_yvals[k]] = xarr_start_i
-                    xarray_points = xarray_points + S_i
+                xarray_points = xarray_points + S_i
                 break
 
         # It is also possible that the final block is larger than the
@@ -135,6 +135,7 @@ class XArray(object):
             xarray_points = xarray_points + S_i
 
         # Add to memory
+        # self.xarray_points = xarray_points
         self.xarray = [Node(self.memory, NodeItem(xarr_point)) for xarr_point in xarray_points]
         self.memory.add_array_to_disk(self.xarray)
 
