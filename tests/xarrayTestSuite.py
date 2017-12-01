@@ -17,6 +17,9 @@ class TestXarray(unittest.TestCase):
     points_2 = [(-84, -80), (92, -75), (-56, -74), (-35, -70), (-34, -67), (11, -65), (39, -63), (-78, -61), (-75, -46), (-33, -42), (-37, -38), (-72, -11), (29, -9), (-94, -8), (22, 2), (-74, 10), (-73, 13), (-47, 17), (85, 26), (57, 32), (21, 38), (67, 38), (85, 52), (-85, 52), (-32, 59), (-91, 67), (21, 71), (19, 73), (24, 85), (58, 86), (41, 96), (43, 97)]
     points_3 = [(random.randint(-1000, 1000), random.randint(-1000, 1000)) for \
                 x in range(1000)]
+    points_4 = [(random.uniform(-100, 100), random.uniform(-1000, 1000)) for \
+                x in range(2000)]
+
     # points_3 = [(992, -930), (990, -489), (985, -668), (976, -81), (969, -110), (968, -245), (964, -224), (960, -87), (960, -153), (960, -990), (947, -861)]
 
     def verify(self, points, x_upper_bound=True, y_upper_bound=True, printout=False):
@@ -45,7 +48,7 @@ class TestXarray(unittest.TestCase):
             # find a random xvalue in the range
             xmin = min(points, key = xcoord)[0]
             xmax = max(points, key = xcoord)[0]
-            randx = random.randint(xmin, xmax)
+            randx = random.uniform(xmin, xmax)
             
             if printout:       
                 if x_upper_bound:
@@ -125,25 +128,34 @@ class TestXarray(unittest.TestCase):
     def test_3(self, x_upper_bound=True, y_upper_bound=True,
                  printout=False):
         self.verify(self.points_3, x_upper_bound, y_upper_bound, printout)
+    
+    def test_4(self, x_upper_bound=True, y_upper_bound=True,
+                 printout=False):
+        self.verify(self.points_4, x_upper_bound, y_upper_bound, printout)
 
 
 def main():
     t = TestXarray()
-    print('--------TEST 1--------')
-    t.test_1(True, True, False)
-    t.test_1(True, False, False)
-    t.test_1(False, True, False)
-    t.test_1(False, False, False)
-    print('--------TEST 2--------')
-    t.test_2(True, True, False)
-    t.test_2(True, False, False)
-    t.test_2(False, True, False)
-    t.test_2(False, False, False)
-    print('--------TEST 3--------')
-    t.test_3(True, True, False)
-    t.test_3(True, False, False)
-    t.test_3(False, True, True)
-    t.test_3(False, False, False)
+    # print('--------TEST 1--------')
+    # t.test_1(True, True, False)
+    # t.test_1(True, False, False)
+    # t.test_1(False, True, False)
+    # t.test_1(False, False, False)
+    # print('--------TEST 2--------')
+    # t.test_2(True, True, False)
+    # t.test_2(True, False, False)
+    # t.test_2(False, True, False)
+    # t.test_2(False, False, False)
+    # print('--------TEST 3--------')
+    # t.test_3(True, True, False)
+    # t.test_3(True, False, False)
+    # t.test_3(False, True, False)
+    # t.test_3(False, False, False)
+    print('--------TEST 4--------')
+    t.test_4(True, True, False)
+    t.test_4(True, False, False)
+    t.test_4(False, True, False)
+    t.test_4(False, False, True)
 
 if __name__ == '__main__':
     main()

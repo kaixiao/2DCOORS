@@ -49,12 +49,13 @@ class LRUBlock(LRUCacheItem):
 
 class Memory(object):
 
-    def __init__(self, array=None, memory_size=DEFAULT_MEM_SIZE,
-                block_size=DEFAULT_BLOCK_SIZE):
+    def __init__(self, memory_size=DEFAULT_MEM_SIZE,
+                block_size=DEFAULT_BLOCK_SIZE, array=None):
         if array is None:
             self.disk = []
         else:
             self.disk = array
+
         self.memory_size = memory_size
         self.block_size = block_size
         self.num_blocks = memory_size//block_size
