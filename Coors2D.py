@@ -55,7 +55,7 @@ class COORS2D2Sided(object):
             prev_x = float('inf')
 
         for i in range(rep_node.xarray_index, len(self.xarray.xarray)):
-            point = self.xarray[i].read()
+            point = self.xarray.xarray[i].read().key
 
             if self.x_upper_bound and point[0] > x_bound:
                 break
