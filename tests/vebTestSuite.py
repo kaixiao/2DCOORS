@@ -1,8 +1,9 @@
 import unittest
-import veb
+from veb import VEBTree, VEBNode
 from cache.memory import Memory
 import math
 import random
+from Node import NodeItem
 
 class TestVEB(unittest.TestCase):
     
@@ -23,9 +24,9 @@ class TestVEB(unittest.TestCase):
 
     # verifies BST invariant at every node
     # checks if depths are correctly assigned
-    def verify_BST(self, points, printout):
-        node_items = [veb.NodeItem(key=y, data=x) for x, y in points]
-        tree = veb.VEB2Sided(self.memory, node_items)
+    def verify_BST(self, points, data_at_leaves, printout):
+        node_items = [NodeItem(key=y, data=x) for x, y in points]
+        tree = VEBTree(self.memory, node_items, VEBNode, data_at_leaves)
         frontier = [tree.root]
         max_depth = 0
         # runs BFS and check invariant holds at every node
@@ -46,18 +47,21 @@ class TestVEB(unittest.TestCase):
             print("Test Passed!")
 
     def test_make_BST_1(self, printout=False):
-        self.verify_BST(self.points_1, printout)
+        self.verify_BST(self.points_1, False, printout)
+        self.verify_BST(self.points_1, True, printout)
 
     def test_make_BST_2(self, printout=False):
-        self.verify_BST(self.points_2, printout)
+        self.verify_BST(self.points_2, False, printout)
+        self.verify_BST(self.points_2, True, printout)
 
     def test_make_BST_3(self, printout=False):
-        self.verify_BST(self.points_3, printout)
+        self.verify_BST(self.points_3, False, printout)
+        self.verify_BST(self.points_3, True, printout)
 
     # verifies local depth-1 VEB structure; necessary but not sufficient
-    def verify_veb_order(self, points, printout):
-        node_items = [veb.NodeItem(key=y, data=x) for x, y in points]
-        tree = veb.VEB2Sided(self.memory, node_items)
+    def verify_veb_order(self, points, data_at_leaves, printout):
+        node_items = [NodeItem(key=y, data=x) for x, y in points]
+        tree = VEBTree(self.memory, node_items, VEBNode, data_at_leaves)
         nodes = list(tree.veb_ordered_nodes)
         for i in range(len(nodes)):
             if printout:
@@ -72,19 +76,22 @@ class TestVEB(unittest.TestCase):
             print("Test Passed!")
 
     def test_make_veb_order_1(self, printout=False):
-        self.verify_veb_order(self.points_1, printout)
+        self.verify_veb_order(self.points_1, False, printout)
+        self.verify_veb_order(self.points_1, True, printout)
 
     def test_make_veb_order_2(self, printout=False):
-        self.verify_veb_order(self.points_2, printout)
+        self.verify_veb_order(self.points_2, False, printout)
+        self.verify_veb_order(self.points_2, True, printout)
 
     def test_make_veb_order_3(self, printout=False):
-        self.verify_veb_order(self.points_3, printout)
+        self.verify_veb_order(self.points_3, False, printout)
+        self.verify_veb_order(self.points_3, True, printout)
 
     # verifies that predecessor visits nodes in order when shifted by epsilon
     # each time; again, necessary but not sufficient
-    def verify_predecessor(self, points, printout):
-        node_items = [veb.NodeItem(key=y, data=x) for x, y in points]
-        tree = veb.VEB2Sided(self.memory, node_items)
+    def verify_predecessor(self, points, data_at_leaves, printout):
+        node_items = [NodeItem(key=y, data=x) for x, y in points]
+        tree = VEBTree(self.memory, node_items, VEBNode, data_at_leaves)
         nodes = sorted(tree.veb_ordered_nodes, key=lambda z: -z.key)
         epsilon = 1e-5
         
@@ -104,9 +111,9 @@ class TestVEB(unittest.TestCase):
             print("Test Passed!")
 
     # verifier symmetric to predecessor
-    def verify_successor(self, points, printout):
-        node_items = [veb.NodeItem(key=y, data=x) for x, y in points]
-        tree = veb.VEB2Sided(self.memory, node_items)
+    def verify_successor(self, points, data_at_leaves, printout):
+        node_items = [NodeItem(key=y, data=x) for x, y in points]
+        tree = VEBTree(self.memory, node_items, VEBNode, data_at_leaves)
         nodes = sorted(tree.veb_ordered_nodes, key=lambda z: z.key)
         epsilon = 1e-5
         if printout:
@@ -125,32 +132,38 @@ class TestVEB(unittest.TestCase):
             print("Test Passed!")
 
     def test_predecessor_1(self, printout=False):
-        self.verify_predecessor(self.points_1, printout)
+        self.verify_predecessor(self.points_1, False, printout)
+        self.verify_predecessor(self.points_1, True, printout)
 
     def test_predecessor_2(self, printout=False):
-        self.verify_predecessor(self.points_2, printout)
+        self.verify_predecessor(self.points_2, False, printout)
+        self.verify_predecessor(self.points_2, True, printout)
 
     def test_predecessor_3(self, printout=False):
-        self.verify_predecessor(self.points_3, printout)
+        self.verify_predecessor(self.points_3, False, printout)
+        self.verify_predecessor(self.points_3, True, printout)
 
     def test_successor_1(self, printout=False):
-        self.verify_successor(self.points_1, printout)
+        self.verify_successor(self.points_1, False, printout)
+        self.verify_successor(self.points_1, True, printout)
 
     def test_successor_2(self, printout=False):
-        self.verify_successor(self.points_2, printout)
+        self.verify_successor(self.points_2, False, printout)
+        self.verify_successor(self.points_2, True, printout)
 
     def test_successor_3(self, printout=False):
-        self.verify_successor(self.points_3, printout)
+        self.verify_successor(self.points_3, False, printout)
+        self.verify_successor(self.points_3, True, printout)
         
-    def test_LCA(self):
+    def test_LCA(self, data_at_leaves=True):
         points = [(i, i) for i in range(1, 17)]
-        node_items = [veb.NodeItem(key=x, data=y) for x, y in points]
-        tree = veb.VEB3Sided(self.memory, node_items)
+        node_items = [NodeItem(key=x, data=y) for x, y in points]
+        tree = VEBTree(self.memory, node_items, VEBNode, data_at_leaves)
         node_1 = tree.predecessor(1)
         node_2 = tree.predecessor(16)
         lca = tree.predecessor(9)
-        self.assertEqual(tree.LCA(node_1, node_2).tuple(), lca.tuple())
-        self.assertEqual(tree.LCA(node_1, lca).tuple(), lca.tuple())
+        self.assertEqual(tree.LCA(node_1, node_2).point(), lca.point())
+        self.assertEqual(tree.LCA(node_1, lca).point(), lca.point())
 
 
 def main():

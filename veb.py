@@ -59,17 +59,17 @@ class VEBNode(Node):
     def is_leaf(self):
         return self._left is None and self._right is None
 
-    def tuple(self):
-        return (self.key, self.data)
+    def point(self):
+        return (self.key, self.data) 
 
     def copy(self):
         return type(self)(self.memory, NodeItem(self.key, self.data))
 
     def __str__(self):
-        return str((self.key, self.data))
+        return str(self.point())
 
     def __hash__(self):
-        return hash((self.key, self.data))
+        return hash(self.point())
 
 
 class Node2Sided(VEBNode):
@@ -80,6 +80,9 @@ class Node2Sided(VEBNode):
     def __init__(self, memory, node_item):
         VEBNode.__init__(self, memory, node_item)
         self.xarray_index = None # index in xarray
+
+    def point(self):
+        return (self.data, self.key)
 
 
 class Node3Sided(VEBNode):
@@ -92,6 +95,8 @@ class Node3Sided(VEBNode):
         self.x_upper_struct = None
         self.x_lower_struct = None
 
+    def point(self):
+        return (self.key, self.data)
 
 class Node4Sided(VEBNode):
     """
@@ -102,6 +107,9 @@ class Node4Sided(VEBNode):
         VEBNode.__init__(self, memory, node_item)
         self.y_upper_struct = None
         self.y_lower_struct = None
+
+    def point(self):
+        return (self.data, self.key)
 
 
 class VEBTree(object):
@@ -219,9 +227,11 @@ class VEBTree(object):
         return res
 
     def predecessor(self, key):
+        # NOTE: algorithm assumes O(1) extra space in cache to store candidate
         # start search from root, returns searched node
-        # assumes O(1) extra space in cache
         # memory transfers from reading nodes are accounted for by VEBNode class
+        # note that internal stores store min of right subtree if data_at_leaves
+
         candidate = None
         current_node = self.root
         while current_node is not None:
@@ -231,6 +241,8 @@ class VEBTree(object):
                 current_node = current_node.right
             else:
                 current_node = current_node.left
+
+        # kind of hacky way of doing predecessor when data_at_leaves is True
         if self.data_at_leaves and candidate is not None:
             candidate = candidate.original
             assert candidate.is_leaf()
@@ -242,6 +254,8 @@ class VEBTree(object):
         current_node = self.root
         while current_node is not None:
             if key <= current_node.key:
+                # technically should traverse right in equality case if data_at_leaves
+                # but correctness is taken care of by candidate variable
                 if candidate is None or current_node.key <= candidate.key:
                     candidate = current_node
                 current_node = current_node.left
@@ -251,11 +265,11 @@ class VEBTree(object):
             candidate = candidate.original
         return candidate
 
+    # this LCA algorithm might be buggy
     def LCA(self, node_1, node_2):
-        # we'll do lca naively in O(log n) instead of O(1)
+        # Naive LCA in O(log n) instead of O(1)
         visited = set()
         while node_1 is not None or node_2 is not None:
-            # print('node_1, node_2:', node_1, node_2)
             if node_1 in visited:
                 return node_1
             else:
@@ -266,8 +280,22 @@ class VEBTree(object):
                 visited.add(node_2)
             node_1 = node_1.parent
             node_2 = node_2.parent
-            # print('node_1, node_2:', node_1, node_2)
         raise Exception('Did not find LCA.')
+
+    def fast_LCA(self, key_min, key_max):
+        # does pred/succ search with LCA together
+        # only makes sense when data_at_leaves is True
+        assert self.data_at_leaves and key_min <= key_max
+        
+        current_node = self.root
+        while not current_node.is_leaf():
+            if key_min < current_node.key <= key_max:
+                break
+            elif key_min >= current_node.key:
+                current_node = current_node.right 
+            else:
+                current_node = current_node.left
+        return current_node
 
     @property
     def root(self):

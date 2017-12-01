@@ -16,7 +16,7 @@ class COORS2D2Sided(object):
         self.x_upper_bound = x_upper_bound
         self.y_upper_bound = y_upper_bound
 
-        # Points are stored sorted by y coordinate
+        # Points are stored in yveb sorted by y coordinate
         self.points = sorted(points, key=y_coord)
         node_items = [NodeItem(y, x) for x, y in points]
         self.yveb = VEB2Sided(self.memory, node_items)
@@ -26,7 +26,8 @@ class COORS2D2Sided(object):
         self.base_case_length = 10
         self.xarray = XArray(self.memory, self.points, self.alpha, \
                 self.base_case_length, self.x_upper_bound, self.y_upper_bound)
-        # initialize xarray_index field in each node
+
+        # initialize xarray_index field in each Node2Sided object
         self.link_nodes_to_xarray()
 
     def link_nodes_to_xarray(self):
@@ -72,8 +73,6 @@ class COORS2D2Sided(object):
             if not self.y_upper_bound and point[1] >= y_bound:
                 solutions.append(point)
 
-        # making sure there are no duplicates so logic is correct
-        assert len(solutions) == len(set(solutions))
         return solutions
 
 
@@ -102,25 +101,18 @@ class COORS2D3Sided(object):
     def query(self, x_min, x_max, y_bound):
         assert x_min <= x_max
 
-        left = self.xveb.predecessor(x_min)
-        if left is None:
-            left = self.xveb.successor(x_min)
-        right = self.xveb.successor(x_max)
-        if right is None:
-            right = self.xveb.predecessor(x_max)
-
-        lca = self.xveb.LCA(left, right)
         solutions = []
+        lca = self.xveb.fast_LCA(x_min, x_max)
+
         if lca.is_leaf():
-            x, y = lca.tuple()
+            x, y = lca.point()
             if x_min <= x <= x_max and (self.y_upper_bound and y <= y_bound \
                     or not self.y_upper_bound and y >= y_bound):
-                solutions.append(lca.tuple())
+                solutions.append(lca.point())
         else:
             solutions.extend(lca.left.x_lower_struct.query(x_min, y_bound))
             solutions.extend(lca.right.x_upper_struct.query(x_max, y_bound))
 
-        assert len(solutions) == len(set(solutions))
         return solutions
 
 class COORS2D4Sided(ORS2D):
@@ -152,23 +144,16 @@ class COORS2D4Sided(ORS2D):
     def query(self, x_min, x_max, y_min, y_max):
         assert x_min <= x_max and y_min <= y_max
 
-        left = self.yveb.predecessor(y_min)
-        if left is None:
-            left = self.yveb.successor(y_min)
-        right = self.yveb.successor(y_max)
-        if right is None:
-            right = self.yveb.predecessor(y_max)
-
-        lca = self.yveb.LCA(left, right)
         solutions = []
+        lca = self.yveb.fast_LCA(y_min, y_max)
+
         if lca.is_leaf():
-            x, y = lca.tuple()
+            x, y = lca.point()
             if x_min <= x <= x_max and y_min <= y <= y_max:
-                solutions.append(lca.tuple())
+                solutions.append((x, y))
         else:
             solutions.extend(lca.left.y_lower_struct.query(x_min, x_max, y_min))
             solutions.extend(lca.right.y_upper_struct.query(x_min, x_max, y_max))
 
-        assert len(solutions) == len(set(solutions))
         return solutions
 
