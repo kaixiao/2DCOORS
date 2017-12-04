@@ -1,10 +1,11 @@
-from Ors2D import ORS2D
 from veb import VEBTree
 from Node import NodeItem, Node
+from Ors2D import ORS2D
+from Coors2D import COORS2D4Sided
 
 # Naive in O(n)
-# sort by x coordinate
-# if we have an implementation of simple 2D range trees log^2n
+# BST sorted by x coordinate
+# simple 2D range trees with O(log^2n) query
 
 x_coord = lambda x: x[0]
 y_coord = lambda x: x[1]
@@ -21,11 +22,11 @@ class NaiveStruct(ORS2D):
         solutions = []
         for i in range(len(self.nodes)):
             p = self.nodes[i].read().key # a node
-            if x_min <= p[0] and p[0] <= x_max and \
-                y_min <= p[1] and p[1] <= y_max:
+            if x_min <= p[0] <= x_max and y_min <= p[1] <= y_max:
                 solutions.append(p)
                 self.memory.update_buffer()
         return solutions
+
 
 class XBSTNode(VEBNode):
     def __init__(self, memory, node_item):
@@ -34,12 +35,15 @@ class XBSTNode(VEBNode):
 
     @property
     def next(self):
+        if self._next is None:
+            return None
         return self._next.read()
 
 
 class XBST(ORS2D):
-    def __init__(self, memory, points, veb_order):
-        # if veb_order is False, store points in sorted order 
+    def __init__(self, memory, points, veb_order=False):
+        # if veb_order is True, store points in veb order
+        # else store in sorted order
 
         self.memory = memory
         self.points = sorted(points, key=x_coord)
@@ -67,6 +71,7 @@ class XBST(ORS2D):
         while x <= x_max and current_node is not None:
             if y_min <= y <= y_max:
                 solutions.append((x, y))
+                self.memory.update_buffer()
             current_node = current_node.next
             x, y = current_node.point()
 
@@ -80,7 +85,7 @@ class RangeTreeNode(VEBNode):
 
 
 class RangeTree(ORS2D):
-    def __init__(self, memory, points, veb_order):
+    def __init__(self, memory, points, veb_order=False):
         self.memory = memory
         self.points = points
         self.veb_order = veb_order
@@ -126,4 +131,8 @@ class RangeTree(ORS2D):
 
         assert curr_right is None
         return solutions
+
+class Coors(COORS2D4Sided):
+    def __init__(self, memory, points):
+        COORS2D4Sided.__init__(self, memory, points)
 
