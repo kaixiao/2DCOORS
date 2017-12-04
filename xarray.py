@@ -10,11 +10,11 @@ class XArray(object):
 
     # if the y is sparse, returns the opt x for which (<=x, <=y)
     # (or other quadrant) is sparse. Otherwise, returns None
-    def is_sparse_x_value(self, y, points, y_upper_bound=True):
+    # def is_sparse_x_value(self, y, points, y_upper_bound=True):
+    def is_sparse_x_value(self, y, points, y_upper_bound=True, max_possible_bad_points=None):
         ps = points
         points_good = 0
         x_opt = None
-
         for i in range(len(ps)):
             if (y_upper_bound and ps[i][1] <= y) or \
                 (not y_upper_bound and ps[i][1] >= y):
@@ -22,7 +22,9 @@ class XArray(object):
             # i+1 is the total number of points examined so far
             if i+1 > self.alpha * points_good:
                 x_opt = ps[i][0]
-
+            if max_possible_bad_points and \
+                (self.alpha - 1) * points_good >= max_possible_bad_points:
+                break
         return x_opt
 
     def __init__(self, memory, points, alpha=2, base_case_length=10,
@@ -56,6 +58,7 @@ class XArray(object):
         start_i = 0
         xarr_start_i = 0
         base_case_termination = False
+        bad_points_thrown_out = 0
 
         for j in range(len(all_yvals)):
             # if j % 500 == 0:
@@ -63,7 +66,7 @@ class XArray(object):
             y = all_yvals[j]
             # The following line only works if S_i is sorted in x in the correct direction
             # It does not take x_upper_bound as a value
-            x = self.is_sparse_x_value(y, S_i, y_upper_bound)
+            x = self.is_sparse_x_value(y, S_i, y_upper_bound, j - bad_points_thrown_out)
 
             if x:
                 i += 1
@@ -83,6 +86,7 @@ class XArray(object):
                 xarray_points = xarray_points + p_i_minus_1
                 xarr_start_i += len(p_i_minus_1)
 
+                prev_size = len(S_i)
                 # Update S_i from S_{i-1}
                 if y_upper_bound:
                     if x_upper_bound:
@@ -94,6 +98,7 @@ class XArray(object):
                         S_i = [s for s in S_i if s[0] > x_i or s[1] >= y_i]
                     else:
                         S_i = [s for s in S_i if s[0] < x_i or s[1] >= y_i]
+                bad_points_thrown_out += prev_size - len(S_i)
 
             # Base case. Map all remaining elements to the last chunk, S_i
             if len(S_i) < base_case_length:

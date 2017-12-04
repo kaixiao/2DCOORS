@@ -11,8 +11,8 @@ LARGE_BOX_SIZE=10000
 NUM_POINTS=1000
 
 def generate_memory():
-    MBpairs = [(128, 8), (1024, 8), (16384, 64)]
-    # MBpairs = [(128, 8)]
+    # MBpairs = [(128, 8), (1024, 8), (16384, 64)]
+    MBpairs = [(128, 8)]
     return [Memory(x[0], x[1]) for x in MBpairs]
 
 def generate_points():
@@ -25,7 +25,7 @@ def generate_points():
                 x in range(NUM_POINTS)]
 
     points_sets.append(points_1)
-    points_sets.append(points_2)
+    # points_sets.append(points_2)
     return points_sets
 
 def generate_boxes():
@@ -77,7 +77,7 @@ def main():
     # Ideally, also want to test for COORS2D4Sided with different
     # alpha and base_case parameters
     data_structures = [ NaiveStruct, 
-                        XBST, 
+                        # XBST, 
                         # SimpleRangeTree, 
                         COORS2D4Sided]
 

@@ -82,8 +82,8 @@ def main():
     t = TestBenchmark()
     ds1 = benchmark.NaiveStruct
     ds2 = benchmark.XBST
-    t.test_queries_1(ds=ds1, trials=1, num_points=1000, num_queries=1000, out=True)
-    t.test_queries_1(ds=ds2, trials=1, num_points=1000, num_queries=1000, out=True)
+    t.test_queries_1(ds=ds1, trials=5, num_points=1000, num_queries=1000, out=True)
+    t.test_queries_1(ds=ds2, trials=5, num_points=1000, num_queries=1000, out=True)
 
 if __name__ == '__main__':
     # unittest.main()
