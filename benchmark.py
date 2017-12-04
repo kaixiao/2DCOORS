@@ -1,5 +1,5 @@
 from Ors2D import ORS2D
-from veb import VEBTree
+from veb import VEBTree, VEBNode
 from Node import NodeItem, Node
 
 # Naive in O(n)
@@ -38,7 +38,7 @@ class XBSTNode(VEBNode):
 
 
 class XBST(ORS2D):
-    def __init__(self, memory, points, veb_order):
+    def __init__(self, memory, points, veb_order=True):
         # if veb_order is False, store points in sorted order 
 
         self.memory = memory
