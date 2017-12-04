@@ -74,7 +74,6 @@ class Memory(object):
     # Zero pad to end of memory if it doesn't align
     def zero_pad(self):
         self.disk += [0] * (self.block_size - len(self.disk) % self.block_size)
-        assert(len(self.disk) % self.block_size == 0)
         # print("Zero padded end of memory!")
 
     # Should only be passed in an array of Nodes
@@ -83,8 +82,6 @@ class Memory(object):
         offset = len(self.disk)
         self.disk += array
         # update each node's memory_index
-        # import pdb
-        # pdb.set_trace()
         assert(isinstance(array[0], Node))
 
         for i in range(len(array)):
