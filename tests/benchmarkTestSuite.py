@@ -1,8 +1,11 @@
 import unittest
-import benchmark
 import random as rd
+from benchmark import *
 from cache.memory import Memory
-import time
+
+XBST_ca = lambda memory, points: XBST(memory, points, veb_order=False)
+RangeTree_ca = lambda memory, points: RangeTree(memory, points, 
+                                                          veb_order=False)
 
 class TestBenchmark(unittest.TestCase):
 
@@ -60,7 +63,7 @@ class TestBenchmark(unittest.TestCase):
 
     def ors_test(self, ors_builder, trials=10, num_points=100, num_queries=1000, 
                  out=False):
-        print("\n-----Running tests for {}-----".format(str(ors_builder)))
+        print("\n-----Running tests for {}-----".format(ors_builder.__name__))
         for i in range(trials):
             points = [(rd.uniform(-self.pbound, self.pbound), 
                        rd.uniform(-self.pbound, self.pbound))
@@ -72,13 +75,17 @@ class TestBenchmark(unittest.TestCase):
 
 def main():
     t = TestBenchmark()
-    ds1 = benchmark.NaiveStruct
-    ds2 = benchmark.XBST
-    ds3 = benchmark.RangeTree
-    ds4 = benchmark.Coors
+    ds1 = NaiveStruct
+    ds2 = XBST
+    ds2x = XBST_ca
+    ds3 = RangeTree
+    ds3x = RangeTree_ca
+    ds4 = Coors
     t.ors_test(ds1, trials=5, num_points=1000, num_queries=1000, out=True)
     t.ors_test(ds2, trials=5, num_points=1000, num_queries=1000, out=True)
+    t.ors_test(ds2x, trials=5, num_points=1000, num_queries=1000, out=True)
     t.ors_test(ds3, trials=5, num_points=1000, num_queries=1000, out=True)
+    t.ors_test(ds3x, trials=5, num_points=1000, num_queries=1000, out=True)
     t.ors_test(ds4, trials=5, num_points=1000, num_queries=1000, out=True)
 
 if __name__ == '__main__':
