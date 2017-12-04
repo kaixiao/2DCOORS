@@ -155,15 +155,12 @@ class TestVEB(unittest.TestCase):
         self.verify_successor(self.points_3, False, printout)
         self.verify_successor(self.points_3, True, printout)
         
-    def test_LCA(self, data_at_leaves=True):
+    def test_fast_LCA(self, data_at_leaves=True):
         points = [(i, i) for i in range(1, 17)]
         node_items = [NodeItem(key=x, data=y) for x, y in points]
         tree = VEBTree(self.memory, node_items, VEBNode, data_at_leaves)
-        node_1 = tree.predecessor(1)
-        node_2 = tree.predecessor(16)
-        lca = tree.predecessor(9)
-        self.assertEqual(tree.LCA(node_1, node_2).point(), lca.point())
-        self.assertEqual(tree.LCA(node_1, lca).point(), lca.point())
+        self.assertEqual(tree.fast_LCA(1, 16).point(), tree.predecessor(9).point())
+        self.assertEqual(tree.fast_LCA(1, 1).point(), tree.predecessor(1).point())
 
 
 def main():

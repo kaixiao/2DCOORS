@@ -51,6 +51,8 @@ class Memory(object):
 
     def __init__(self, array=None, memory_size=DEFAULT_MEM_SIZE,
                 block_size=DEFAULT_BLOCK_SIZE):
+        assert memory_size and block_size
+
         if array is None:
             self.disk = []
         else:
@@ -61,8 +63,8 @@ class Memory(object):
         self.disk_accesses = 0
         self.cell_probes = 0
 
-        if memory_size and block_size:
-            self.set_cache(self.num_blocks)
+        self.set_cache(self.num_blocks)
+        self.set_buffer()
 
         if len(self.disk) % self.block_size != 0:
             self.zero_pad()
@@ -70,28 +72,29 @@ class Memory(object):
     def set_cache(self, cache_size):
         self.cache = LRUCache(cache_size)
 
+    def set_buffer(self):
+        # set buffer placeholder padded with zeros
+        self.disk += [0] * self.block_size
+        self.buffer_count = 0
+
     # Zero pad to end of memory if it doesn't align
+    # NOTE: perhaps pad it with an empty node
     def zero_pad(self):
         self.disk += [0] * (self.block_size - len(self.disk) % self.block_size)
         assert(len(self.disk) % self.block_size == 0)
-        # print("Zero padded end of memory!")
 
     # Should only be passed in an array of Nodes
     def add_array_to_disk(self, array):
-        # returns array offset in disk
+        # initializes each node's memory_index
+        assert(len(array) and isinstance(array[0], Node))
+
         offset = len(self.disk)
         self.disk += array
-        # update each node's memory_index
-        # import pdb
-        # pdb.set_trace()
-        assert(isinstance(array[0], Node))
-
         for i in range(len(array)):
             array[i].memory_index = offset + i
+
         if len(self.disk) % self.block_size != 0:
             self.zero_pad()
-        return offset
-
 
     # Read the element at the index on disk
     def read(self, index):
@@ -106,9 +109,16 @@ class Memory(object):
                         (block_index+1)*self.block_size]
         if block_index not in self.cache.hash:
             self.disk_accesses += 1
-        block = LRUBlock(block_index,
-                Block(self.block_size, disk_chunk))
-        self.cache.insertItem(block)
+            block = LRUBlock(block_index,
+                    Block(self.block_size, disk_chunk))
+            self.cache.insertItem(block)
+
+    def update_buffer(self, num_of_items=1):
+        self.update_cache(0)
+        self.buffer_count += num_of_items 
+        if self.buffer_count >= self.block_size:
+            self.disk_accesses += self.buffer_count // self.block_size
+            self.buffer_count = self.buffer_count % self.block_size
 
     def get_disk_accesses(self):
         return self.disk_accesses
@@ -125,8 +135,7 @@ class Memory(object):
     def write_block(self, index, block):
         raise Exeception("Writes are not supported yet.")
         self.disk_accesses += 1
-        self.disk[index*self.block_size:
-            (index+1)*self.block_size] = block.as_list()
+        self.disk[index*self.block_size:(index+1)*self.block_size] = block.as_list()
 
 def main():
     # test that disk_accesses is tracked correctly

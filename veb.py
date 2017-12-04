@@ -16,7 +16,8 @@ class VEBNode(Node):
         self._right = None
         self._parent = None
         self._depth = None
-        self.original = self # pointer to original copy, applicable when data at disk
+        # pointer to original copy, used for pred/succ serach when data_at_leaves
+        self.original = self 
 
     @property
     def left(self):
@@ -114,7 +115,8 @@ class Node4Sided(VEBNode):
 
 class VEBTree(object):
 
-    def __init__(self, memory, node_items, node_builder=None, data_at_leaves=False):
+    def __init__(self, memory, node_items, node_builder=None, data_at_leaves=False, \
+                 veb_order=True):
         """
         VEB tree constructed from list of NodeItem objects and node builder function
         Directly integrated with external memory module
@@ -134,9 +136,11 @@ class VEBTree(object):
 
         max_depth = int(math.log(len(node_items), 2) + data_at_leaves)
         self.veb_ordered_nodes = self.make_veb_order(self._root, max_depth)
-        self.initialize_node_back_pointers(self.veb_ordered_nodes)
 
-        self.offset = memory.add_array_to_disk(self.veb_ordered_nodes)
+        if veb_order:
+            self.memory.add_array_to_disk(self.veb_ordered_nodes)
+        else:
+            self.memory.add_array_to_disk(self.nodes)
 
     def make_BST(self, nodes, data_at_leaves, parent=None, srted=False):
         # make a perfect BST from a list of NodeItems
@@ -203,22 +207,12 @@ class VEBTree(object):
 
         return veb_order
 
-    def initialize_node_back_pointers(self, nodes):
-        # iterates through veb_ordered_nodes to set veb_index of each node
-        for i, node in enumerate(nodes):
-            node.veb_index = i
-            node.veb = self
-
-    def initialize_node_memory_pointer(self, nodes):
-        for node in nodes:
-            node.memory = self.memory
-
-    def subtree_leaves(self, root):
+    def subtree(self, root, leaves=False):
         # returns list of leaves in a given subtree via BFS
         frontier = [root]
         res = []
         for node in frontier:
-            if node.is_leaf():
+            if leaves and node.is_leaf() or not leaves:
                 res.append(node)
             if node._left is not None:
                 frontier.append(node._left)
@@ -265,23 +259,6 @@ class VEBTree(object):
             candidate = candidate.original
         return candidate
 
-    # this LCA algorithm might be buggy
-    def LCA(self, node_1, node_2):
-        # Naive LCA in O(log n) instead of O(1)
-        visited = set()
-        while node_1 is not None or node_2 is not None:
-            if node_1 in visited:
-                return node_1
-            else:
-                visited.add(node_1)
-            if node_2 in visited:
-                return node_2
-            else:
-                visited.add(node_2)
-            node_1 = node_1.parent
-            node_2 = node_2.parent
-        raise Exception('Did not find LCA.')
-
     def fast_LCA(self, key_min, key_max):
         # does pred/succ search with LCA together
         # only makes sense when data_at_leaves is True
@@ -299,7 +276,7 @@ class VEBTree(object):
 
     @property
     def root(self):
-        r = self.memory.read(self.offset)
+        r = self._root.read()
         assert self._root == r
         return r
 

@@ -23,5 +23,6 @@ class Node(object):
         # accesses self through memory model
         if self.memory_index is None:
             raise Exception("Node not added to disk yet.")
+
         return self.memory.read(self.memory_index)
 

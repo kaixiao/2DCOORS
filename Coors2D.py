@@ -1,5 +1,5 @@
 from veb import *
-from Node import NodeItem
+from Node import NodeItem, Node
 from xarray import XArray
 from cache.memory import Memory
 from Ors2D import ORS2D
@@ -49,7 +49,7 @@ class COORS2D2Sided(object):
             if rep_node is None:
                 rep_node = self.yveb.successor(y_bound)
 
-        solutions = []
+        solutions = [] # NOTE: how to incorporate into memory model
         if self.x_upper_bound:
             prev_x = -float('inf')
         else:
@@ -70,8 +70,11 @@ class COORS2D2Sided(object):
 
             if self.y_upper_bound and point[1] <= y_bound:
                 solutions.append(point)
+                self.memory.update_buffer()
+
             if not self.y_upper_bound and point[1] >= y_bound:
                 solutions.append(point)
+                self.memory.update_buffer()
 
         return solutions
 
@@ -92,7 +95,7 @@ class COORS2D3Sided(object):
     def link_nodes_to_2Sided(self):
         # store 2Sided structs on points in subtrees for every node in xveb
         for node in self.xveb.veb_ordered_nodes:
-            points = [(v.key, v.data) for v in self.xveb.subtree_leaves(node)]
+            points = [(v.key, v.data) for v in self.xveb.subtree(node, leaves=True)]
             node.x_upper_struct = COORS2D2Sided(self.memory, points, \
                     x_upper_bound=True, y_upper_bound=self.y_upper_bound)
             node.x_lower_struct = COORS2D2Sided(self.memory, points, \
@@ -135,7 +138,7 @@ class COORS2D4Sided(ORS2D):
 
     def link_nodes_to_3Sided(self):
         for node in self.yveb.veb_ordered_nodes:
-            points = [(v.data, v.key) for v in self.yveb.subtree_leaves(node)]
+            points = [(v.data, v.key) for v in self.yveb.subtree(node, leaves=True)]
             node.y_upper_struct = COORS2D3Sided(self.memory, points, \
                     y_upper_bound=True)
             node.y_lower_struct = COORS2D3Sided(self.memory, points, \
