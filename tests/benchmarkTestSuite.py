@@ -3,9 +3,10 @@ import random as rd
 from benchmark import *
 from cache.memory import Memory
 
-XBST_ca = lambda memory, points: XBST(memory, points, veb_order=False)
-RangeTree_ca = lambda memory, points: RangeTree(memory, points, 
-                                                          veb_order=False)
+XBST_non_veb = lambda memory, points: XBST(memory, points, veb_order=False)
+XBST_non_veb.__name__ = 'XBST_non_veb'
+RangeTree_non_veb = lambda memory, points: RangeTree(memory, points, veb_order=False)
+RangeTree_non_veb.__name__ = 'RangeTree_non_veb'
 
 class TestBenchmark(unittest.TestCase):
 
@@ -77,9 +78,9 @@ def main():
     t = TestBenchmark()
     ds1 = NaiveStruct
     ds2 = XBST
-    ds2x = XBST_ca
+    ds2x = XBST_non_veb
     ds3 = RangeTree
-    ds3x = RangeTree_ca
+    ds3x = RangeTree_non_veb
     ds4 = Coors
     t.ors_test(ds1, trials=5, num_points=1000, num_queries=1000, out=True)
     t.ors_test(ds2, trials=5, num_points=1000, num_queries=1000, out=True)
