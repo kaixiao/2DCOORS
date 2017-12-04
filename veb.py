@@ -2,7 +2,6 @@
 import math
 from Node import Node, NodeItem
 
-
 class VEBNode(Node):
     """
     Supports basic node features key, data, left, right, parent, depth
@@ -61,7 +60,7 @@ class VEBNode(Node):
         return self._left is None and self._right is None
 
     def point(self):
-        return (self.key, self.data) 
+        raise Exception("Point not implemented.")
 
     def copy(self):
         return type(self)(self.memory, NodeItem(self.key, self.data))
@@ -157,6 +156,7 @@ class VEBTree(object):
             right_nodes = nodes[mid:]
             root = nodes[mid].copy()
             root.original = nodes[mid]
+            self.nodes.append(root)
         else:
             left_nodes = nodes[:mid]
             right_nodes = nodes[mid+1:]
@@ -294,6 +294,7 @@ class VEB3Sided(VEBTree):
 
     def __init__(self, memory, node_items):
         VEBTree.__init__(self, memory, node_items, Node3Sided, data_at_leaves=True)
+
 
 class VEB4Sided(VEBTree):
 

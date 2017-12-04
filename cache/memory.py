@@ -2,25 +2,22 @@
 from cache.LRU import LRUCache, LRUCacheItem
 from Node import Node
 
-DEFAULT_MEM_SIZE = 128
+DEFAULT_MEM_SIZE = 32
 DEFAULT_BLOCK_SIZE = 8
-
-
 
 class Block(object):
 
-    # Takes in a list of length size
+    def __init__(self, size=DEFAULT_BLOCK_SIZE, data=None):
+        self.size = size
+        self.set_from_list(data)
+
+    # Takes in a list of length equal to block size
     def set_from_list(self, data):
         assert(len(data) == self.size)
         if data:
             self.data = data
         else:
             self.data = [None] * self.size
-
-    def __init__(self, size=DEFAULT_BLOCK_SIZE, data=None):
-        self.size = size
-        self.set_from_list(data)
-
 
     def as_list(self):
         return self.data
@@ -123,13 +120,11 @@ class Memory(object):
     def get_disk_accesses(self):
         return self.disk_accesses
 
-    def reset_disk_accesses(self):
-        self.disk_accesses = 0
-
     def get_cell_probes(self):
         return self.cell_probes
 
-    def reset_cell_probes(self):
+    def reset_stats(self):
+        self.disk_accesses = 0
         self.cell_probes = 0
 
     def write_block(self, index, block):
