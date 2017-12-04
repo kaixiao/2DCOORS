@@ -123,13 +123,11 @@ class Memory(object):
     def get_disk_accesses(self):
         return self.disk_accesses
 
-    def reset_disk_accesses(self):
-        self.disk_accesses = 0
-
     def get_cell_probes(self):
         return self.cell_probes
 
-    def reset_cell_probes(self):
+    def reset_stats(self):
+        self.disk_accesses = 0
         self.cell_probes = 0
 
     def write_block(self, index, block):

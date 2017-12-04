@@ -19,25 +19,20 @@ class TestBenchmark(unittest.TestCase):
 
             if good_point:
                 if (x, y) not in sol:
-                    print('\n(x_min, x_max, y_min, y_max): ({:.2f}, {:.2f},' \
+                    print('\n(x_min, x_max, y_min, y_max): ({:.2f}, {:.2f}, ' \
                           '{:.2f}, {:.2f})'.format(x_min, x_max, y_min, y_max))
                     print('Correct point (%.2f, %.2f) not in solution.\n' % (x, y))
                     return False
             else:
                 if (x, y) in sol:
-                    print('\n(x_min, x_max, y_min, y_max): ({:.2f}, {:.2f},' \
+                    print('\n(x_min, x_max, y_min, y_max): ({:.2f}, {:.2f}, ' \
                           '{:.2f}, {:.2f})'.format(x_min, x_max, y_min, y_max))
                     print('Incorrect point (%.2f, %.2f) in solution.\n' % (x, y))
                     return False
         return True
 
-    def verify_randomqueries(self, points, num_queries, obj, out=False):
-        t1 = time.time()
-        self.memory.reset_disk_accesses()
-        self.memory.reset_cell_probes()
-        t2 = time.time()
-        if out:
-            print("Preprocessing memory completed in {:.3f}s.".format(t2-t1))
+    def verify_random_queries(self, points, num_queries, ors_ds, out=False):
+        self.memory.reset_stats()
 
         for i in range(num_queries):
             x_min = rd.uniform(-self.qbound, self.qbound)
@@ -49,43 +44,43 @@ class TestBenchmark(unittest.TestCase):
             y_min = min(y_min, y_max)
             y_max = max(y_min, y_max)
 
-            solutions = obj.query(x_min, x_max, y_min, y_max)
+            solutions = ors_ds.query(x_min, x_max, y_min, y_max)
             if not self.verify_solution(points, solutions, \
                     x_min, x_max, y_min, y_max):
                 if out:
-                    print("Test Failed.\n")
+                    print("\nTest Failed.\n")
                 return False
 
         if out:
-            print("Test Passed for 4Sided!")
-            print("Queries: {}, Disk accesses: {}, Cell probes: {}\n".format(
+            print("Queries: {}, Disk accesses: {}, Cell probes: {}".format(
                                                 num_queries, 
                                                 self.memory.get_disk_accesses(), 
                                                 self.memory.get_cell_probes()))
         return True
 
-    # @unittest.skip("This test is skipped")
-    def test_queries_1(self, ds=None, trials=10, num_points=100, num_queries=1000, out=False):
-        # this function takes a while to run when number of points is large
+    def ors_test(self, ors_builder, trials=10, num_points=100, num_queries=1000, 
+                 out=False):
+        print("\n-----Running tests for {}-----".format(str(ors_builder)))
         for i in range(trials):
             points = [(rd.uniform(-self.pbound, self.pbound), 
                        rd.uniform(-self.pbound, self.pbound))
                        for _ in range(num_points)]
-            datastruct = ds(self.memory, points)
-            import pdb
-            pdb.set_trace()
-            self.assertTrue(self.verify_randomqueries(
-                    points, num_queries, datastruct, out))
-            print('Passed trial {} of {}.'.format(i+1, trials))
+            ds = ors_builder(self.memory, points)
+            self.assertTrue(self.verify_random_queries(
+                    points, num_queries, ds, out))
+            print('Passed trial {}/{}.\n'.format(i+1, trials))
 
 def main():
     t = TestBenchmark()
     ds1 = benchmark.NaiveStruct
     ds2 = benchmark.XBST
-    t.test_queries_1(ds=ds1, trials=1, num_points=1000, num_queries=1000, out=True)
-    t.test_queries_1(ds=ds2, trials=1, num_points=1000, num_queries=1000, out=True)
+    ds3 = benchmark.RangeTree
+    ds4 = benchmark.Coors
+    t.ors_test(ds1, trials=5, num_points=1000, num_queries=1000, out=True)
+    t.ors_test(ds2, trials=5, num_points=1000, num_queries=1000, out=True)
+    t.ors_test(ds3, trials=5, num_points=1000, num_queries=1000, out=True)
+    t.ors_test(ds4, trials=5, num_points=1000, num_queries=1000, out=True)
 
 if __name__ == '__main__':
-    # unittest.main()
     main()
 
