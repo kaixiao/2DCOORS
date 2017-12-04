@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 from veb import VEBTree
+=======
+from Ors2D import ORS2D
+from veb import VEBTree, VEBNode
+>>>>>>> 2910126e8ae7e534ce0cf0d5c1a607773f98bc5f
 from Node import NodeItem, Node
 from Ors2D import ORS2D
 from Coors2D import COORS2D4Sided
@@ -41,7 +46,7 @@ class XBSTNode(VEBNode):
 
 
 class XBST(ORS2D):
-    def __init__(self, memory, points, veb_order=False):
+    def __init__(self, memory, points, veb_order=True):
         # if veb_order is True, store points in veb order
         # else store in sorted order
 
@@ -85,7 +90,7 @@ class RangeTreeNode(VEBNode):
 
 
 class RangeTree(ORS2D):
-    def __init__(self, memory, points, veb_order=False):
+    def __init__(self, memory, points, veb_order=True):
         self.memory = memory
         self.points = points
         self.veb_order = veb_order
@@ -131,6 +136,7 @@ class RangeTree(ORS2D):
 
         assert curr_right is None
         return solutions
+
 
 class Coors(COORS2D4Sided):
     def __init__(self, memory, points):

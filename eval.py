@@ -77,7 +77,7 @@ def main():
     # Ideally, also want to test for COORS2D4Sided with different
     # alpha and base_case parameters
     data_structures = [ NaiveStruct, 
-                        SortedXVEBTree, 
+                        XBST, 
                         # SimpleRangeTree, 
                         COORS2D4Sided]
 
