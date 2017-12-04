@@ -49,14 +49,15 @@ class LRUBlock(LRUCacheItem):
 
 class Memory(object):
 
-    def __init__(self, array=None, memory_size=DEFAULT_MEM_SIZE,
-                block_size=DEFAULT_BLOCK_SIZE):
+    def __init__(self, memory_size=DEFAULT_MEM_SIZE,
+                block_size=DEFAULT_BLOCK_SIZE, array=None):
         assert memory_size and block_size
 
         if array is None:
             self.disk = []
         else:
             self.disk = array
+
         self.memory_size = memory_size
         self.block_size = block_size
         self.num_blocks = memory_size//block_size
@@ -81,7 +82,6 @@ class Memory(object):
     # NOTE: perhaps pad it with an empty node
     def zero_pad(self):
         self.disk += [0] * (self.block_size - len(self.disk) % self.block_size)
-        assert(len(self.disk) % self.block_size == 0)
 
     # Should only be passed in an array of Nodes
     def add_array_to_disk(self, array):
@@ -139,7 +139,7 @@ class Memory(object):
 
 def main():
     # test that disk_accesses is tracked correctly
-    mem = Memory(list(range(1,1000)))
+    mem = Memory(array=list(range(1,1000)))
     for i in range(240):
         mem.read(i)
     print(mem.disk_accesses)

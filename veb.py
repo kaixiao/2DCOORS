@@ -114,14 +114,12 @@ class Node4Sided(VEBNode):
 
 
 class VEBTree(object):
-
+    """
+    VEB tree constructed from list of NodeItem objects and node builder function
+    If data_at_leaves is True, each internal node stores the min of right subtree
+    """
     def __init__(self, memory, node_items, node_builder=None, data_at_leaves=False, \
                  veb_order=True):
-        """
-        VEB tree constructed from list of NodeItem objects and node builder function
-        Directly integrated with external memory module
-        If data_at_leaves, each internal node stores the min of right subtree
-        """
         assert len(node_items) > 0
 
         if node_builder is None:

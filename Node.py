@@ -26,3 +26,6 @@ class Node(object):
 
         return self.memory.read(self.memory_index)
 
+    def point(self):
+        raise Exception("Point() not supported for this Node class.")
+
