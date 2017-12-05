@@ -205,7 +205,7 @@ class TestCoors2D(unittest.TestCase):
                 self.assertTrue(self.verify_3Sided_random_queries(dirc, points, \
                         num_queries, out))
 
-    def test_4Sided_1(self, trials=30, num_points=100, num_queries=1000, out=False):
+    def test_4Sided_1(self, trials=20, num_points=100, num_queries=1000, out=False):
         # this function takes a while to run when number of points is large
         for i in range(trials):
             points = [(rd.uniform(self.POINT_LB, self.POINT_UB), 
@@ -218,10 +218,13 @@ class TestCoors2D(unittest.TestCase):
 
 def main():
     t = TestCoors2D()
-    t.test_4Sided_1(trials=10, num_points=100, num_queries=1000, out=True)
-    t.test_4Sided_1(trials=1, num_points=1000, num_queries=1000, out=True)
+    t.test_4Sided_1(trials=1, num_points=100, num_queries=1000, out=True)
+    t.test_4Sided_1(trials=1, num_points=200, num_queries=1000, out=True)
+    t.test_4Sided_1(trials=1, num_points=400, num_queries=1000, out=True)
+    t.test_4Sided_1(trials=1, num_points=800, num_queries=1000, out=True)
+    # t.test_4Sided_1(trials=1, num_points=1600, num_queries=1000, out=True)
 
 if __name__ == '__main__':
-    unittest.main()
-    # main()
+    # unittest.main()
+    main()
 

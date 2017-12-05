@@ -52,7 +52,8 @@ class XBST(ORS2D):
         self.points = sorted(points, key=x_coord)
         self.veb_order = veb_order
         node_items = [NodeItem(x, y) for x, y in self.points]
-        self.tree = VEBTree(self.memory, node_items, XBSTNode, veb_order=veb_order)
+        self.tree = VEBTree(self.memory, node_items, XBSTNode, 
+                            data_at_leaves=False, veb_order=veb_order)
         self.link_sorted_nodes()
 
     def link_sorted_nodes(self):
