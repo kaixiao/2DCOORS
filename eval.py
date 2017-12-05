@@ -34,14 +34,13 @@ def generate_points(num_points=DEFAULT_NUM_POINTS):
     return points
 
 def get_default_points():
-    return generate_points(5000)
+    return generate_points(2000)
 
 def generate_all_points():
     all_points = [  generate_points(1000), 
                     generate_points(2000),
                     generate_points(5000),
-                    generate_points(10000),
-                    generate_points(20000)]
+                    generate_points(10000)]
     return all_points
 
 def generate_large_boxes(num_boxes=1000):
@@ -127,7 +126,7 @@ def main():
                             RangeTree_non_veb,
                             Coors]
 
-        boxes = generate_all_boxes(10000)
+        boxes = generate_all_boxes(1000)
         
         all_num_points = []
         all_block_sizes = []
