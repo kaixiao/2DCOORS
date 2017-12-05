@@ -82,12 +82,12 @@ def main():
     ds3 = RangeTree
     ds3x = RangeTree_non_veb
     ds4 = Coors
-    t.ors_test(ds1, trials=5, num_points=1000, num_queries=1000, out=True)
-    t.ors_test(ds2, trials=5, num_points=1000, num_queries=1000, out=True)
-    t.ors_test(ds2x, trials=5, num_points=1000, num_queries=1000, out=True)
-    t.ors_test(ds3, trials=5, num_points=1000, num_queries=1000, out=True)
-    t.ors_test(ds3x, trials=5, num_points=1000, num_queries=1000, out=True)
-    t.ors_test(ds4, trials=1, num_points=10000, num_queries=1000, out=True)
+    t.ors_test(ds1, trials=5, num_points=100, num_queries=1000, out=True)
+    t.ors_test(ds2, trials=5, num_points=100, num_queries=1000, out=True)
+    t.ors_test(ds2x, trials=5, num_points=100, num_queries=1000, out=True)
+    t.ors_test(ds3, trials=5, num_points=100, num_queries=1000, out=True)
+    t.ors_test(ds3x, trials=5, num_points=100, num_queries=1000, out=True)
+    t.ors_test(ds4, trials=5, num_points=100, num_queries=1000, out=True)
 
 if __name__ == '__main__':
     main()

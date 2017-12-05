@@ -28,9 +28,9 @@ class NaiveStruct(ORS2D):
         return solutions
 
 
-class XBSTNode(VEBNode):
+class XLinkedListNode(Node):
     def __init__(self, memory, node_item):
-        VEBNode.__init__(self, memory, node_item)
+        Node.__init__(self, memory, node_item)
         self._next = None
 
     def point(self):
@@ -43,6 +43,32 @@ class XBSTNode(VEBNode):
         return self._next.read()
 
 
+class XLinkedList(object):
+    def __init__(self, memory, points):
+        self.memory = memory
+        self.points = sorted(points, key=x_coord)
+        self.nodes = [XLinkedListNode(memory, NodeItem(*p)) \
+                      for p in self.points]
+        self.link_nodes()
+        self.memory.add_array_to_disk(self.nodes)
+
+    def link_nodes(self):
+        prev = None
+        for node in self.nodes:
+            if prev is not None:
+                prev._next = node
+            prev = node
+
+
+class XBSTNode(VEBNode):
+    def __init__(self, memory, node_item):
+        VEBNode.__init__(self, memory, node_item)
+        self.linked_list_copy = None
+
+    def point(self):
+        return (self.key, self.data)
+
+
 class XBST(ORS2D):
     def __init__(self, memory, points, veb_order=True):
         # if veb_order is True, store points in veb order
@@ -52,33 +78,30 @@ class XBST(ORS2D):
         self.points = sorted(points, key=x_coord)
         self.veb_order = veb_order
         node_items = [NodeItem(x, y) for x, y in self.points]
-        self.tree = VEBTree(self.memory, node_items, XBSTNode, veb_order=veb_order)
-        self.link_sorted_nodes()
+        self.tree = VEBTree(self.memory, node_items, XBSTNode, 
+                            data_at_leaves=False, veb_order=veb_order)
+        self.linked_list = XLinkedList(memory, points)
+        self.link_tree_to_linked_list()
 
-    def link_sorted_nodes(self):
-        # initializes next pointers in XBSTNode objects
-        prev = None
-        for node in self.tree.nodes:
-            if prev is not None:
-                assert prev.key <= node.key
-                prev._next = node
-            prev = node
+    def link_tree_to_linked_list(self):
+        for list_node in self.linked_list.nodes:
+            tree_node = self.tree.find_in_subtree(self.tree._root, list_node.key,
+                                                  list_node.data)
+            tree_node.linked_list_copy = list_node
 
     def query(self, x_min, x_max, y_min, y_max):
         solutions = []
-        current_node = self.tree.successor(x_min)
-        if current_node is None:
+        curr = self.tree.successor(x_min)
+        if curr is None:
             return solutions
-        x, y = current_node.point()
+        else:
+            curr = curr.linked_list_copy
 
-        while x <= x_max:
-            if y_min <= y <= y_max:
-                solutions.append((x, y))
+        while curr is not None and curr.key <= x_max:
+            if y_min <= curr.data <= y_max:
+                solutions.append(curr.point())
                 self.memory.update_buffer()
-            current_node = current_node.next
-            if current_node is None:
-                break
-            x, y = current_node.point()
+            curr = curr.next
 
         return solutions
 

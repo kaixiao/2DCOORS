@@ -49,7 +49,7 @@ class COORS2D2Sided(object):
             if rep_node is None:
                 rep_node = self.yveb.successor(y_bound)
 
-        solutions = [] # NOTE: how to incorporate into memory model
+        solutions = [] 
         if self.x_upper_bound:
             prev_x = -float('inf')
         else:
