@@ -87,7 +87,7 @@ def main():
     t.ors_test(ds2x, trials=5, num_points=100, num_queries=1000, out=True)
     t.ors_test(ds3, trials=5, num_points=100, num_queries=1000, out=True)
     t.ors_test(ds3x, trials=5, num_points=100, num_queries=1000, out=True)
-    t.ors_test(ds4, trials=1, num_points=100, num_queries=1000, out=True)
+    t.ors_test(ds4, trials=5, num_points=100, num_queries=1000, out=True)
 
 if __name__ == '__main__':
     main()
