@@ -19,12 +19,15 @@ class XArray(object):
             if (y_upper_bound and ps[i][1] <= y) or \
                 (not y_upper_bound and ps[i][1] >= y):
                 points_good += 1
+
             # i+1 is the total number of points examined so far
             if i+1 > self.alpha * points_good:
                 x_opt = ps[i][0]
+
             if max_possible_bad_points and \
                 (self.alpha - 1) * points_good >= max_possible_bad_points:
                 break
+
         return x_opt
 
     def __init__(self, memory, points, alpha=2, base_case_length=10,
