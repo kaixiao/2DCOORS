@@ -15,20 +15,14 @@ class VEBNode(Node):
         self._right = None
         self._parent = None
         self._depth = None
-        # pointer to original copy, used for pred/succ serach when data_at_leaves
-        self.original = self 
+        self._original = self 
 
+    # Enforces access through the cache/disk model
     @property
     def left(self):
-        # Enforces access through the cache/disk model
         if self._left is None:
             return None
         return self._left.read()
-
-    @left.setter
-    def left(self, node):
-        # dynamic updates not supported yet
-        raise Exception("Writes not supported yet")
         self._left = node
 
     @property
@@ -37,21 +31,15 @@ class VEBNode(Node):
             return None
         return self._right.read()
 
-    @right.setter
-    def right(self, node):
-        raise Exception("Writes not supported yet")
-        self._right = node
-
     @property
     def parent(self):
         if self._parent is None:
             return None
         return self._parent.read()
 
-    @parent.setter
-    def parent(self, node):
-        raise Exception("Writes not supported yet")
-        self._parent = node
+    @property
+    def original(self):
+        return self._original.read()
 
     def is_root(self):
         return self._parent is None
@@ -155,7 +143,7 @@ class VEBTree(object):
             left_nodes = nodes[:mid]
             right_nodes = nodes[mid:]
             root = nodes[mid].copy()
-            root.original = nodes[mid]
+            root._original = nodes[mid]
             self.nodes.append(root)
         else:
             left_nodes = nodes[:mid]
@@ -206,6 +194,7 @@ class VEBTree(object):
         return veb_order
 
     def subtree(self, root, leaves=False):
+        # used during preprocessing
         # returns list of leaves in a given subtree via BFS
         frontier = [root]
         res = []
@@ -217,6 +206,23 @@ class VEBTree(object):
             if node._right is not None:
                 frontier.append(node._right)
         return res
+
+    def find_in_subtree(self, root, key, data):
+        curr = root
+        while not curr.is_leaf():
+            if key > curr.key:
+                curr = curr._right
+            elif key < curr.key:
+                curr = curr._left
+            else:
+                if data == curr.data:
+                    return curr._original
+                else:
+                    return self.find_in_subtree(curr._left, key, data) or \
+                           self.find_in_subtree(curr._right, key, data)
+        if key == curr.key and data == curr.data:
+            return curr
+        return None
 
     def predecessor(self, key):
         # NOTE: algorithm assumes O(1) extra space in cache to store candidate
