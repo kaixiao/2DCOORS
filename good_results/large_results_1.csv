@@ -1,0 +1,13 @@
+,block size,box type,data structure,memory size,num cell probes,num disk accesses,num points,num queries
+0,8,bigBoxes,NaiveStruct,32,20000000,2671446,20000,1000
+1,8,smallBoxes,NaiveStruct,32,20000000,2500053,20000,1000
+2,8,bigBoxes,XBST,32,3895055,617761,20000,1000
+3,8,smallBoxes,XBST,32,46481,11137,20000,1000
+4,8,bigBoxes,XBST_non_veb,32,3895055,622530,20000,1000
+5,8,smallBoxes,XBST_non_veb,32,46481,15755,20000,1000
+6,8,bigBoxes,RangeTree,32,749364,221711,20000,1000
+7,8,smallBoxes,RangeTree,32,45840,15769,20000,1000
+8,8,bigBoxes,RangeTree_non_veb,32,749364,231213,20000,1000
+9,8,smallBoxes,RangeTree_non_veb,32,45840,17656,20000,1000
+10,8,bigBoxes,Coors,32,1128665,255947,20000,1000
+11,8,smallBoxes,Coors,32,21537,10273,20000,1000
