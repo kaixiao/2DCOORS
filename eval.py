@@ -34,13 +34,13 @@ def generate_points(num_points=DEFAULT_NUM_POINTS):
     return points
 
 def get_default_points():
-    return generate_points(200)
+    return generate_points(2000)
 
 def generate_all_points():
-    all_points = [  generate_points(100), 
-                    generate_points(200),
-                    generate_points(500),
-                    generate_points(1000)]
+    all_points = [  generate_points(1000), 
+                    generate_points(2000),
+                    generate_points(5000),
+                    generate_points(10000)]
     return all_points
 
 def generate_large_boxes(num_boxes=1000):
@@ -120,8 +120,7 @@ def evaluation(points, all_boxes, memory, ds_builder):
 
 def main():
 
-
-    for iteration in range(1,2):
+    for iteration in range(1,6):
         # Ideally, also want to test for COORS2D4Sided with different
         # alpha and base_case parameters
         print("Iteration %s" % (iteration))
@@ -195,10 +194,10 @@ def main():
         df = pd.DataFrame(data=d)
         # print(df)
         # print(df[lambda df: df['data structure'] == 'Coors'])
-        # df.to_csv('results/results_%s.csv' % (iteration))
-        # df.to_pickle('results/results_%s.pkl' % (iteration))
-        df.to_csv('results/temp_results.csv')
-        df.to_pickle('results/temp_results.pkl')
+        df.to_csv('results/results_%s.csv' % (iteration))
+        df.to_pickle('results/results_%s.pkl' % (iteration))
+        # df.to_csv('results/temp_results.csv')
+        # df.to_pickle('results/temp_results.pkl')
         # So begin by fixing default (num_points, memory configs)
         # Step 1: Vary the memory configs
         # Step 2: Vary the num points
