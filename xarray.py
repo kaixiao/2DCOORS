@@ -30,6 +30,23 @@ class XArray(object):
 
         return x_opt
 
+    def is_sparse(self, point, upper_list, lower_list):
+        # does rank query on both lists in O(log n)
+        # returns if query at point is sparse
+        # handles cases with self.x_upper_bound and self.y_upper_bound
+        pass
+
+    def rollover_point(self, point, upper_list, lower_list):
+        # deletes point from one list and insert point into another
+        # again, cases based on self.x_upper_bound and self.y_upper_bound
+        pass
+
+    def get_P_i_and_update_S_i(self, point, upper_list, lower_list):
+        # delete points within some quadrant after we find a sparse query
+        # updates both upper and lower lists (whose union represents S_i)
+        # returns P_i as a list of points
+        pass
+
     def __init__(self, memory, points, alpha=2, base_case_length=10,
                     x_upper_bound=True, y_upper_bound=True):
         # print("inside: x_upper_bound: ", x_upper_bound)
@@ -39,8 +56,8 @@ class XArray(object):
         self.y_to_xarray_chunk_map=dict()
         self.alpha = alpha
         self.memory = memory
-        # offset measures how far from the start of memory
-        self.memory_disk_offset = len(self.memory.disk)
+        self.x_upper_bound = x_upper_bound
+        self.y_upper_bound = y_upper_bound
 
         # Sort yvals from largest to smallest
         all_yvals = [p[1] for p in points]
