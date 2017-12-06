@@ -3,6 +3,7 @@ from Node import NodeItem, Node
 from xarray import XArray
 from cache.memory import Memory
 from Ors2D import ORS2D
+import time
 
 x_coord = lambda x: x[0]
 y_coord = lambda x: x[1]
@@ -137,12 +138,20 @@ class COORS2D4Sided(ORS2D):
         self.link_nodes_to_3Sided()
 
     def link_nodes_to_3Sided(self):
+        counter = 0
+        target = 1
+        start_time = time.time()
         for node in self.yveb.veb_ordered_nodes:
+            cur_time = time.time()
+            if counter == target:
+                target *= 2
+                print("Constructed %s nodes in %s time" % (counter, cur_time - start_time))
             points = [(v.data, v.key) for v in self.yveb.subtree(node, leaves=True)]
             node.y_upper_struct = COORS2D3Sided(self.memory, points, \
                     y_upper_bound=True)
             node.y_lower_struct = COORS2D3Sided(self.memory, points, \
                     y_upper_bound=False)
+            counter += 1
 
     def query(self, x_min, x_max, y_min, y_max):
         assert x_min <= x_max and y_min <= y_max

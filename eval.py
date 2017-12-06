@@ -34,13 +34,13 @@ def generate_points(num_points=DEFAULT_NUM_POINTS):
     return points
 
 def get_default_points():
-    return generate_points(2000)
+    return generate_points(200)
 
 def generate_all_points():
-    all_points = [  generate_points(1000), 
-                    generate_points(2000),
-                    generate_points(5000),
-                    generate_points(10000)]
+    all_points = [  generate_points(100), 
+                    generate_points(200),
+                    generate_points(500),
+                    generate_points(1000)]
     return all_points
 
 def generate_large_boxes(num_boxes=1000):
@@ -86,7 +86,7 @@ def generate_all_boxes(num_boxes=1000):
     boxes['bigBoxes'] = generate_large_boxes(num_boxes)
     return boxes
 
-def evaluation(points, boxes, memory, ds_builder):
+def evaluation(points, all_boxes, memory, ds_builder):
     print("\n-----Running tests for {}-----".format(ds_builder.__name__))
     # print("\nConfiguration: {} points, {} queries, B={}, M={}".format(
     #         len(points), 
@@ -97,28 +97,34 @@ def evaluation(points, boxes, memory, ds_builder):
     # Construct data structure
     ds = ds_builder(memory, points)
 
-    # Reset memory
-    memory.reset_stats()
-    assert(memory.get_disk_accesses() == 0)
-    assert(memory.get_cell_probes() == 0)
 
-    # Perform queries
-    # count = 0
-    for box in boxes:
-        sol = ds.query(box[0], box[1], box[2], box[3])
+    all_result_tuples = []
+    # Perform queries and get result for each type of boxes
+    for boxtype in all_boxes:
+        boxes = all_boxes[boxtype]
 
-    print("Queries: {}, Disk accesses: {}, Cell probes: {}".format(
-            len(boxes), 
-            memory.get_disk_accesses(), 
-            memory.get_cell_probes()))
-    return len(boxes), memory.get_disk_accesses(), memory.get_cell_probes()
+        # Reset memory
+        memory.reset_stats()
+        assert(memory.get_disk_accesses() == 0)
+        assert(memory.get_cell_probes() == 0)
+
+        for box in boxes:
+            sol = ds.query(box[0], box[1], box[2], box[3])
+
+        all_result_tuples.append((boxtype, len(boxes), memory.get_disk_accesses(), memory.get_cell_probes()))
+        # print("Queries: {}, Disk accesses: {}, Cell probes: {}".format(
+        #         len(boxes), 
+        #         memory.get_disk_accesses(), 
+        #         memory.get_cell_probes()))
+    return all_result_tuples
 
 def main():
 
 
-    for iteration in range(1,11):
+    for iteration in range(1,2):
         # Ideally, also want to test for COORS2D4Sided with different
         # alpha and base_case parameters
+        print("Iteration %s" % (iteration))
         data_structures = [ NaiveStruct, 
                             XBST, 
                             XBST_non_veb,
@@ -126,7 +132,7 @@ def main():
                             RangeTree_non_veb,
                             Coors]
 
-        boxes = generate_all_boxes(1000)
+        all_boxes = generate_all_boxes(1000)
         
         all_num_points = []
         all_block_sizes = []
@@ -142,10 +148,13 @@ def main():
         points = get_default_points()
         memories = generate_all_memories()
         for memory in memories:
-            for box_type in boxes:
-                for data_structure in data_structures:
-                    queries, disk_accesses, cell_probes = evaluation(points, 
-                        boxes[box_type], memory, data_structure)
+            print("Default points for memory %s %s" % (memory.memory_size,
+                                                        memory.block_size))
+            for data_structure in data_structures:
+                all_result_tuples = evaluation(points, 
+                    all_boxes, memory, data_structure)
+                for result_tuple in all_result_tuples:
+                    (box_type, queries, disk_accesses, cell_probes) = result_tuple
                     all_num_points.append(len(points))
                     all_block_sizes.append(memory.block_size)
                     all_memory_sizes.append(memory.memory_size)
@@ -154,15 +163,17 @@ def main():
                     all_num_disk_accesses.append(disk_accesses)
                     all_num_cell_probes.append(cell_probes)
                     all_data_structures.append(data_structure.__name__)
-        
+            
         # Case 2: Fix memory config, vary number of points
         memory = get_default_memory()
         all_points = generate_all_points()
         for points in all_points:
-            for box_type in boxes:
-                for data_structure in data_structures:
-                    queries, disk_accesses, cell_probes = evaluation(points, 
-                        boxes[box_type], memory, data_structure)
+            print("Default memory for %s points" % (len(points)))
+            for data_structure in data_structures:
+                all_result_tuples = evaluation(points, 
+                    all_boxes, memory, data_structure)
+                for result_tuple in all_result_tuples:
+                    (box_type, queries, disk_accesses, cell_probes) = result_tuple
                     all_num_points.append(len(points))
                     all_block_sizes.append(memory.block_size)
                     all_memory_sizes.append(memory.memory_size)
@@ -171,7 +182,7 @@ def main():
                     all_num_disk_accesses.append(disk_accesses)
                     all_num_cell_probes.append(cell_probes)
                     all_data_structures.append(data_structure.__name__)
-        
+    
 
         d = {   'num points': all_num_points,
                 'block size': all_block_sizes,
@@ -184,8 +195,10 @@ def main():
         df = pd.DataFrame(data=d)
         # print(df)
         # print(df[lambda df: df['data structure'] == 'Coors'])
-        df.to_csv('results/results_%s.csv' % (iteration))
-        df.to_pickle('results/results_%s.pkl' % (iteration))
+        # df.to_csv('results/results_%s.csv' % (iteration))
+        # df.to_pickle('results/results_%s.pkl' % (iteration))
+        df.to_csv('results/temp_results.csv')
+        df.to_pickle('results/temp_results.pkl')
         # So begin by fixing default (num_points, memory configs)
         # Step 1: Vary the memory configs
         # Step 2: Vary the num points
