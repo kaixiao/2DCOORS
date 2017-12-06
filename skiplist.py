@@ -1,5 +1,6 @@
-# this class is used for efficient construction of xarray
+# This class is used for efficient construction of xarray
 import random as rd
+import math
 
 class SkipListNode(object):
     def __init__(self, key, data, head=False):
@@ -33,6 +34,7 @@ class SkipList(object):
     def __init__(self, tuples):
         self.root = SkipListHead()
         self.num_levels = 1
+        self.num_nodes = 0
 
         for key, data in tuples:
             self.insert(key, data)
@@ -67,7 +69,7 @@ class SkipList(object):
         node = SkipListNode(key, data)
         prev = None
         i = 0
-        while True:
+        while i < math.ceil(math.log(self.num_nodes+1, 2)):
             if i < self.num_levels:
                 node.left = preds[i]
                 node.right = preds[i].right
@@ -93,6 +95,8 @@ class SkipList(object):
             else:
                 i += 1
 
+        self.num_nodes += 1
+
     def delete(self, key):
         node = self.predecessors(key)[0][0]
         assert key == node.key
@@ -107,6 +111,8 @@ class SkipList(object):
                     self.root = node.left.down
                     self.num_levels -= 1
             node = node.up
+
+        self.num_nodes -= 1
 
     def rank(self, key):
         # number of points less than or equal to key
@@ -146,11 +152,13 @@ class SkipList(object):
         self.num_levels += 1
 
 def main():
-    s = SkipList([(x, x) for x in range(20)])
-    print([s.rank(x) for x in range(20)])
-    print(s.rank(-1))
-    print(s.rank(10.5))
-    print(s.rank(21))
+    s = SkipList([(x, x) for x in range(1, 21)])
+    print('Expected', 0, 'Returned', s.rank(-1))
+    print('Expected', 5, 'Returned', s.rank(5))
+    print('Expected', 12, 'Returned', s.rank(12.5))
+    print('Expected', 20, 'Returned',  s.rank(30))
+    print('Num_levels', s.num_levels)
+    print('Num_nodes', s.num_nodes)
 
 if __name__ == '__main__':
     main()
